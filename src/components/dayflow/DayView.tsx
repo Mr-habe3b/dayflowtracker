@@ -17,6 +17,7 @@ interface DayViewProps {
 }
 
 const HOURS_IN_DAY = 24;
+const NO_CATEGORY_VALUE = "__NO_CATEGORY_VALUE__"; // Constant for "No Category" option
 
 export function DayView({ activities, categories, onActivityChange }: DayViewProps) {
   const formatHour = (hour: number): string => {
@@ -60,8 +61,11 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                     </TableCell>
                     <TableCell className="py-3">
                       <Select
-                        value={activity?.categoryId || ''}
-                        onValueChange={(value) => onActivityChange(hour, 'categoryId', value)}
+                        value={activity?.categoryId === null || activity?.categoryId === undefined ? NO_CATEGORY_VALUE : activity.categoryId}
+                        onValueChange={(selectedValue) => {
+                          const actualValue = selectedValue === NO_CATEGORY_VALUE ? '' : selectedValue;
+                          onActivityChange(hour, 'categoryId', actualValue);
+                        }}
                       >
                         <SelectTrigger className="bg-white focus:ring-accent text-sm">
                           <SelectValue placeholder="Select category">
@@ -74,7 +78,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value=""><em>No Category</em></SelectItem>
+                          <SelectItem value={NO_CATEGORY_VALUE}><em>No Category</em></SelectItem>
                           {categories.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               <div className="flex items-center gap-2">
