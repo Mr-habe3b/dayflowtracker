@@ -68,10 +68,9 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     }
   };
 
-  const escapeCsvField = (field: string | null | undefined): string => {
+  const escapeCsvField = (field: string | number | null | undefined): string => {
     if (field === null || field === undefined) return '';
     const stringField = String(field);
-    // Escape double quotes by doubling them, and wrap in double quotes if it contains comma, newline or double quote
     if (stringField.includes(',') || stringField.includes('\n') || stringField.includes('"')) {
       return `"${stringField.replace(/"/g, '""')}"`;
     }
@@ -93,9 +92,11 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     }
 
     try {
+      // AI Report Generation
       const growthReportResult = await generateProfessionalGrowthReport({ trackingData: JSON.stringify(trackingDataForAI) });
       
-      let csvContent = "Hour,Activity,Category,Priority\n";
+      let csvContent = "Section: Daily Activity Log\n";
+      csvContent += "Hour,Activity,Category,Priority\n";
       activities.forEach(act => {
         const categoryName = categories.find(c => c.id === act.categoryId)?.name || 'Uncategorized';
         const row = [
@@ -107,11 +108,29 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
         csvContent += row + "\n";
       });
 
-      csvContent += "\n\n";
-      csvContent += "Professional Growth Report:\n";
-      csvContent += `"${escapeCsvField(growthReportResult.professionalGrowthReport).replace(/\n/g, '\r\n')}"\n\n`; // Ensure newlines in report are handled
+      // Time Allocation Summary for Graph
+      csvContent += "\n\nSection: Time Allocation Summary (for graph)\n";
+      csvContent += "Category,Hours\n";
+      const categoryTimeSummary = categories.map(category => {
+        const count = activities.filter(act => act.categoryId === category.id).length;
+        return {
+          name: category.name,
+          hours: count,
+        };
+      }).filter(ct => ct.hours > 0);
+
+      categoryTimeSummary.forEach(item => {
+        csvContent += `${escapeCsvField(item.name)},${escapeCsvField(item.hours)}\n`;
+      });
+
+      // Professional Growth Report
+      csvContent += "\n\nSection: Professional Growth Report\n";
+      // Adding a header row for the report section can be good practice if it's simple.
+      // For multi-line text, just placing it under the section title is fine.
+      csvContent += `"${escapeCsvField(growthReportResult.professionalGrowthReport).replace(/\n/g, '\r\n')}"\n`;
       
-      csvContent += "Improvement Suggestions:\n";
+      // Improvement Suggestions
+      csvContent += "\n\nSection: Improvement Suggestions\n";
       csvContent += `"${escapeCsvField(growthReportResult.improvementSuggestions).replace(/\n/g, '\r\n')}"\n`;
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -188,3 +207,4 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     </Card>
   );
 }
+
