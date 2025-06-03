@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,13 +25,14 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     setReport('');
 
     const trackingDataForAI = activities
-      .filter(act => act.description || act.categoryId) // Only include hours with some data
+      .filter(act => act.description || act.categoryId || act.priority) 
       .map(act => {
         const category = categories.find(cat => cat.id === act.categoryId);
         return {
           hour: act.hour,
           activity: act.description,
           category: category ? category.name : 'Uncategorized',
+          priority: act.priority || 'Not set',
         };
       });
 
@@ -64,7 +66,7 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">AI Summary Report</CardTitle>
-        <CardDescription>Get an AI-generated summary of your day's activities.</CardDescription>
+        <CardDescription>Get an AI-generated summary of your day's activities, including prioritized tasks.</CardDescription>
       </CardHeader>
       <CardContent>
         <Button onClick={handleGenerateReport} disabled={isLoading} className="w-full mb-4 bg-accent hover:bg-accent/90 text-accent-foreground">

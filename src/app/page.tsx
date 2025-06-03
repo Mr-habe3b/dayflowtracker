@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { DayView } from '@/components/dayflow/DayView';
 import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
-import type { ActivityLog, Category } from '@/types/dayflow';
+import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { BrainCircuit } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
@@ -40,7 +41,9 @@ export default function Home() {
     // Load activities from localStorage
     const storedActivities = localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVITIES);
     if (storedActivities) {
-      setActivities(JSON.parse(storedActivities));
+      // Ensure loaded activities have the priority field
+      const parsedActivities = JSON.parse(storedActivities) as ActivityLog[];
+      setActivities(parsedActivities.map(act => ({ ...act, priority: act.priority || null })));
     } else {
       // Initialize empty activities for 24 hours
       setActivities(
@@ -48,6 +51,7 @@ export default function Home() {
           hour: i,
           description: '',
           categoryId: null,
+          priority: null,
         }))
       );
     }
@@ -79,10 +83,14 @@ export default function Home() {
     );
   };
 
-  const handleActivityChange = (hour: number, field: 'description' | 'categoryId', value: string) => {
+  const handleActivityChange = (
+    hour: number,
+    field: 'description' | 'categoryId' | 'priority',
+    value: string | Priority | null
+  ) => {
     setActivities((prev) =>
       prev.map((act) =>
-        act.hour === hour ? { ...act, [field]: value || (field === 'categoryId' ? null : '') } : act
+        act.hour === hour ? { ...act, [field]: value === '' && (field === 'categoryId' || field === 'priority') ? null : value } : act
       )
     );
   };
