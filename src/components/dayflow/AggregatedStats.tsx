@@ -4,27 +4,28 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { ActivityLog, Category } from '@/types/dayflow';
 import { GetIcon } from './icons';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface AggregatedStatsProps {
   activities: ActivityLog[];
   categories: Category[];
 }
 
-// Predefined distinct colors for chart bars
+// Predefined distinct colors for chart bars (can be used for text/icon colors)
 const COLORS = [
-  '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8',
-  '#82CA9D', '#A4DE6C', '#D0ED57', '#FFC658', '#FF7300'
+  'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))', 'hsl(var(--chart-5))', '#0088FE', '#00C49F',
+  '#FFBB28', '#FF8042', '#8884D8'
 ];
 
 export function AggregatedStats({ activities, categories }: AggregatedStatsProps) {
   const categoryTime = categories.map((category, index) => {
     const count = activities.filter(act => act.categoryId === category.id).length;
     return {
+      id: category.id,
       name: category.name,
       icon: category.icon,
       hours: count, // Each activity log represents one hour
-      fill: COLORS[index % COLORS.length], // Assign a color
+      color: COLORS[index % COLORS.length], // Assign a color
     };
   }).filter(ct => ct.hours > 0); // Only show categories with logged time
 
@@ -38,37 +39,28 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
         {categoryTime.length === 0 ? (
           <p className="text-muted-foreground">No activities logged yet or no time allocated to categories.</p>
         ) : (
-          <div className="space-y-3">
-            <div className="h-[180px] w-full">
-               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryTime} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} interval={0} />
-                  <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
-                    labelStyle={{ color: 'hsl(var(--foreground))' }}
-                    formatter={(value: number, name: string, props: any) => [`${value} hour(s)`, props.payload.name]}
-                  />
-                  <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                    {categoryTime.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <ul className="space-y-1">
-              {categoryTime.map((item) => (
-                <li key={item.name} className="flex items-center justify-between py-1 px-2 text-sm rounded-md hover:bg-muted/50">
-                  <div className="flex items-center gap-2">
-                    <GetIcon name={item.icon} className="h-4 w-4" style={{color: item.fill}}/>
-                    <span>{item.name}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {categoryTime.map((item) => (
+              <Card key={item.id} className="shadow-md">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {item.name}
+                  </CardTitle>
+                  <GetIcon name={item.icon} className="h-5 w-5" style={{ color: item.color }} />
+                </CardHeader>
+                <CardContent className="pt-1">
+                  <div className="text-3xl font-bold" style={{ color: item.color }}>
+                    {item.hours} 
+                    <span className="text-2xl font-semibold ml-1">
+                      hour{item.hours === 1 ? '' : 's'}
+                    </span>
                   </div>
-                  <span className="font-medium">{item.hours} hour{item.hours === 1 ? '' : 's'}</span>
-                </li>
-              ))}
-            </ul>
+                  <p className="text-xs text-muted-foreground pt-1">
+                    Logged for today
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </CardContent>
