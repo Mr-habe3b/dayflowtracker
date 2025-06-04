@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -57,9 +58,9 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <ul className="space-y-2 mt-4">
+            <ul className="space-y-1.5">
               {categoryTime.map((item) => (
-                <li key={item.name} className="flex items-center justify-between p-2 bg-secondary rounded-md text-sm">
+                <li key={item.name} className="flex items-center justify-between py-1.5 px-1 text-sm">
                   <div className="flex items-center gap-2">
                     <GetIcon name={item.icon} className="h-4 w-4" style={{color: item.fill}}/>
                     <span>{item.name}</span>
@@ -74,3 +75,4 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
     </Card>
   );
 }
+
