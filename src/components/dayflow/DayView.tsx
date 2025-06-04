@@ -12,7 +12,7 @@ import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { GetIcon } from './icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowUp, ArrowDown, Minus, CalendarDays, Loader2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, Minus, CalendarDays, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { suggestActivity } from '@/ai/flows/suggest-activity-flow';
@@ -23,6 +23,7 @@ interface DayViewProps {
   activities: ActivityLog[];
   categories: Category[];
   onActivityChange: (hour: number, field: 'description' | 'categoryId' | 'priority', value: string | Priority | null) => void;
+  currentDay: Date; // Added to know which day's log is being displayed
 }
 
 const HOURS_IN_DAY = 24;
@@ -31,9 +32,9 @@ const NO_PRIORITY_VALUE = "__NO_PRIORITY_VALUE__";
 
 const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: string; icon?: React.ElementType, iconClass?: string }[] = [
   { value: NO_PRIORITY_VALUE, label: 'None' },
-  { value: 'high', label: 'High', icon: ArrowUp, iconClass: 'text-destructive-foreground' }, // Changed icon color for high priority
-  { value: 'medium', label: 'Medium', icon: Minus, iconClass: 'text-yellow-500' }, // Kept original for medium for distinction
-  { value: 'low', label: 'Low', icon: ArrowDown, iconClass: 'text-green-500' }, // Kept original for low for distinction
+  { value: 'high', label: 'High', icon: ArrowUp, iconClass: 'text-destructive-foreground' },
+  { value: 'medium', label: 'Medium', icon: Minus, iconClass: 'text-yellow-500' },
+  { value: 'low', label: 'Low', icon: ArrowDown, iconClass: 'text-green-500' },
 ];
 
 const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
@@ -45,8 +46,8 @@ const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) =
     });
 };
 
-export function DayView({ activities, categories, onActivityChange }: DayViewProps) {
-  const [currentDateTime, setCurrentDateTime] = useState('');
+export function DayView({ activities, categories, onActivityChange, currentDay }: DayViewProps) {
+  const [liveDateTime, setLiveDateTime] = useState(''); // For the live clock
   const { toast } = useToast();
 
   const [activitySuggestions, setActivitySuggestions] = useState<string[]>([]);
@@ -68,11 +69,11 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
 
   useEffect(() => {
     const updateDateTime = () => {
-      setCurrentDateTime(format(new Date(), "MMMM d, yyyy - EEEE, h:mm a"));
+      setLiveDateTime(format(new Date(), "EEEE, h:mm a")); // Only show day and time for live clock
     };
-    updateDateTime(); // Initial call
-    const intervalId = setInterval(updateDateTime, 60000); // Update every minute
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    updateDateTime();
+    const intervalId = setInterval(updateDateTime, 60000);
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchSuggestionsCallback = useCallback(async (inputValue: string, forHour: number) => {
@@ -80,7 +81,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
     const currentVal = currentFocusedValueRef.current;
 
     if (!inputValue.trim() || currentActiveHour !== forHour || currentVal !== inputValue) {
-      if (currentActiveHour === forHour) { // Only clear if suggestions were for this input
+      if (currentActiveHour === forHour) {
          setActivitySuggestions([]);
       }
       setSuggestionsLoading(false);
@@ -107,8 +108,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
          setActivitySuggestions([]);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]); // toast is stable from useToast
+  }, [toast]);
 
   const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestionsCallback, 500), [fetchSuggestionsCallback]);
 
@@ -119,9 +119,9 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
   };
 
   const getPriorityDisplay = (priority: Priority | null) => {
-    if (!priority) return null;
+    if (!priority) return "Set priority"; // Changed to return string for placeholder consistency
     const option = priorityOptions.find(p => p.value === priority);
-    if (!option) return <Badge variant="outline" className="capitalize">{priority}</Badge>;
+    if (!option || option.value === NO_PRIORITY_VALUE) return "Set priority";
     
     let badgeVariant: "default" | "destructive" | "secondary" | "outline" = "outline";
     if (priority === 'high') badgeVariant = 'destructive';
@@ -144,12 +144,15 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="font-headline text-xl">Daily Activity Log</CardTitle>
-            <CardDescription>Log your activities, category, and priority for each hour of the day. AI suggestions appear as you type in "Activity Description".</CardDescription>
+            <CardDescription>
+              Log activities for <span className="font-semibold text-primary">{format(currentDay, "MMMM d, yyyy")}</span>.
+              AI suggestions appear as you type.
+            </CardDescription>
           </div>
-          {currentDateTime && (
+          {liveDateTime && (
             <div className="text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2 shrink-0">
               <CalendarDays className="h-4 w-4" />
-              <span>{currentDateTime}</span>
+              <span>{liveDateTime}</span>
             </div>
           )}
         </div>
@@ -192,9 +195,9 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                               setActiveSuggestionInputHour(hour);
                               setCurrentFocusedValue(e.target.value);
                               if (e.target.value.trim()) {
-                                // Suggestions are triggered by onChange or if already focused and text exists
+                                // debouncedFetchSuggestions(e.target.value, hour);
                               } else {
-                                  setActivitySuggestions([]); 
+                                  setActivitySuggestions([]);
                               }
                             }}
                             onChange={(e) => {
@@ -202,22 +205,22 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                               onActivityChange(hour, 'description', newValue);
                               setCurrentFocusedValue(newValue);
                               if (newValue.trim()) {
-                                setActiveSuggestionInputHour(hour); 
+                                setActiveSuggestionInputHour(hour);
                                 debouncedFetchSuggestions(newValue, hour);
                               } else {
                                 setActivitySuggestions([]);
-                                setActiveSuggestionInputHour(null); 
+                                setActiveSuggestionInputHour(null);
                               }
                             }}
                             placeholder="What were you doing?"
                             className="bg-white focus:ring-accent text-sm"
                           />
                         </PopoverTrigger>
-                        <PopoverContent 
-                            className="w-[var(--radix-popover-trigger-width)] p-1" 
-                            side="bottom" 
+                        <PopoverContent
+                            className="w-[var(--radix-popover-trigger-width)] p-1"
+                            side="bottom"
                             align="start"
-                            onOpenAutoFocus={(e) => e.preventDefault()} 
+                            onOpenAutoFocus={(e) => e.preventDefault()}
                         >
                           {suggestionsLoading && activeSuggestionInputHour === hour ? (
                             <div className="p-2 text-sm text-muted-foreground text-center flex items-center justify-center">
@@ -232,7 +235,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                                 className="w-full justify-start p-2 text-sm h-auto text-left whitespace-normal"
                                 onClick={() => {
                                   onActivityChange(hour, 'description', suggestion);
-                                  setCurrentFocusedValue(suggestion); 
+                                  setCurrentFocusedValue(suggestion);
                                   setActivitySuggestions([]);
                                   setActiveSuggestionInputHour(null);
                                 }}
@@ -287,8 +290,8 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                         }}
                       >
                         <SelectTrigger className="bg-white focus:ring-accent text-sm">
-                          <SelectValue placeholder="Set priority">
-                            {currentPriority ? getPriorityDisplay(currentPriority) : "Set priority"}
+                           <SelectValue>
+                            {getPriorityDisplay(currentPriority)}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>

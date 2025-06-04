@@ -10,13 +10,15 @@ import { generateSummaryReport } from '@/ai/flows/generate-summary-report';
 import { generateProfessionalGrowthReport } from '@/ai/flows/generate-professional-growth-report';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Zap, Download } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface SummaryReportProps {
   activities: ActivityLog[];
   categories: Category[];
+  reportDate: Date; // Added to know which date the report is for
 }
 
-export function SummaryReport({ activities, categories }: SummaryReportProps) {
+export function SummaryReport({ activities, categories, reportDate }: SummaryReportProps) {
   const [report, setReport] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -45,7 +47,7 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     if (trackingDataForAI.length === 0) {
       toast({
         title: 'No Data',
-        description: 'Please log some activities before generating a summary report.',
+        description: `Please log some activities for ${format(reportDate, 'MMMM d, yyyy')} before generating a summary report.`,
         variant: 'default',
       });
       setIsLoading(false);
@@ -84,7 +86,7 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     if (trackingDataForAI.length === 0) {
       toast({
         title: 'No Data',
-        description: 'Please log some activities before downloading a report.',
+        description: `Please log some activities for ${format(reportDate, 'MMMM d, yyyy')} before downloading a report.`,
         variant: 'default',
       });
       setIsDownloading(false);
@@ -92,15 +94,15 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     }
 
     try {
-      // AI Report Generation
       const growthReportResult = await generateProfessionalGrowthReport({ trackingData: JSON.stringify(trackingDataForAI) });
       
-      let csvContent = "Section: Daily Activity Log\n";
+      let csvContent = `Report Date: ${format(reportDate, 'yyyy-MM-dd')}\n\n`;
+      csvContent += "Section: Daily Activity Log\n";
       csvContent += "Hour,Activity,Category,Priority\n";
       activities.forEach(act => {
         const categoryName = categories.find(c => c.id === act.categoryId)?.name || 'Uncategorized';
         const row = [
-          act.hour,
+          `${act.hour.toString().padStart(2, '0')}:00`,
           act.description,
           categoryName,
           act.priority || 'Not set'
@@ -108,7 +110,6 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
         csvContent += row + "\n";
       });
 
-      // Time Allocation Summary for Graph
       csvContent += "\n\nSection: Time Allocation Summary (for graph)\n";
       csvContent += "Category,Hours\n";
       const categoryTimeSummary = categories.map(category => {
@@ -123,13 +124,9 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
         csvContent += `${escapeCsvField(item.name)},${escapeCsvField(item.hours)}\n`;
       });
 
-      // Professional Growth Report
       csvContent += "\n\nSection: Professional Growth Report\n";
-      // Adding a header row for the report section can be good practice if it's simple.
-      // For multi-line text, just placing it under the section title is fine.
       csvContent += `"${escapeCsvField(growthReportResult.professionalGrowthReport).replace(/\n/g, '\r\n')}"\n`;
       
-      // Improvement Suggestions
       csvContent += "\n\nSection: Improvement Suggestions\n";
       csvContent += `"${escapeCsvField(growthReportResult.improvementSuggestions).replace(/\n/g, '\r\n')}"\n`;
 
@@ -138,7 +135,7 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", `DayFlow_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `DayFlow_Report_${format(reportDate, 'yyyy-MM-dd')}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -162,7 +159,7 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">AI Summary & Reports</CardTitle>
-        <CardDescription>Get AI insights and download your daily activity log.</CardDescription>
+        <CardDescription>Get AI insights and download your daily activity log for {format(reportDate, 'MMMM d, yyyy')}.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row gap-2 mb-4">
@@ -200,11 +197,10 @@ export function SummaryReport({ activities, categories }: SummaryReportProps) {
         )}
         {!report && !isLoading && !isDownloading && (
             <div className="text-center text-muted-foreground p-4 border border-dashed rounded-md">
-                Click "Generate Summary" to see your AI insights or "Download Report" for a CSV file.
+                Click "Generate Summary" to see your AI insights or "Download Report" for a CSV file for the selected day.
             </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
