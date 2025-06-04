@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Category } from '@/types/dayflow';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, X } from 'lucide-react'; // Changed Trash2 to X
 import { ICON_LIST, GetIcon } from './icons';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; // Added ScrollArea and ScrollBar
 
 interface CategoryManagerProps {
   categories: Category[];
@@ -51,8 +52,8 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
         <CardTitle className="font-headline text-xl">Manage Categories</CardTitle>
         <CardDescription>Create and organize your activity categories.</CardDescription>
       </CardHeader>
-      <CardContent className="p-4">
-        <form onSubmit={handleAddCategory} className="space-y-4 mb-4">
+      <CardContent className="p-4 space-y-4">
+        <form onSubmit={handleAddCategory} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="categoryName" className="font-medium text-sm">New Category Name</Label>
             <Input
@@ -86,33 +87,34 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
           </Button>
         </form>
 
-        <h3 className="font-semibold mb-2 text-base">Existing Categories:</h3>
-        {categories.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No categories added yet.</p>
-        ) : (
-          <ul className="space-y-0">
-            {categories.map((category) => (
-              <li 
-                key={category.id} 
-                className="flex items-center justify-between py-3 px-2 border-b last:border-b-0 border-border/70"
-              >
-                <div className="flex items-center gap-2.5">
-                  <GetIcon name={category.icon} className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{category.name}</span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => onDeleteCategory(category.id)} 
-                  aria-label={`Delete ${category.name} category`}
-                  className="h-7 w-7"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div>
+          <h3 className="font-semibold mb-2 text-base">Existing Categories:</h3>
+          {categories.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No categories added yet.</p>
+          ) : (
+            <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+              <div className="flex space-x-2 p-2">
+                {categories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium bg-card hover:bg-muted/50 shadow-sm"
+                  >
+                    <GetIcon name={category.icon} className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-foreground whitespace-nowrap">{category.name}</span>
+                    <button
+                      onClick={() => onDeleteCategory(category.id)}
+                      aria-label={`Delete ${category.name} category`}
+                      className="ml-1 p-0.5 rounded-full text-destructive hover:bg-destructive/10 focus:outline-none focus:ring-1 focus:ring-destructive/50"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
