@@ -2,6 +2,7 @@
 'use client';
 
 import type React from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,8 @@ import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { GetIcon } from './icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { AlertTriangle, ArrowUp, ArrowDown, Minus, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface DayViewProps {
   activities: ActivityLog[];
@@ -31,6 +33,18 @@ const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: stri
 ];
 
 export function DayView({ activities, categories, onActivityChange }: DayViewProps) {
+  const [currentDateTime, setCurrentDateTime] = useState('');
+
+  useEffect(() => {
+    const updateDateTime = () => {
+      setCurrentDateTime(format(new Date(), "MMMM d, yyyy - EEEE, h:mm a"));
+    };
+    updateDateTime(); // Initial call
+    const intervalId = setInterval(updateDateTime, 60000); // Update every minute
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
+
   const formatHour = (hour: number): string => {
     const h = hour % 24;
     return `${h.toString().padStart(2, '0')}:00`;
@@ -53,11 +67,21 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
   return (
     <Card className="shadow-lg h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline text-xl">Daily Activity Log</CardTitle>
-        <CardDescription>Log your activities, category, and priority for each hour of the day.</CardDescription>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="font-headline text-xl">Daily Activity Log</CardTitle>
+            <CardDescription>Log your activities, category, and priority for each hour of the day.</CardDescription>
+          </div>
+          {currentDateTime && (
+            <div className="text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              <span>{currentDateTime}</span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="flex-grow overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-250px)] md:h-[calc(100vh-220px)] pr-4">
+        <ScrollArea className="h-[calc(100vh-280px)] md:h-[calc(100vh-250px)] pr-4">
           <Table>
             <TableHeader className="sticky top-0 bg-card z-10">
               <TableRow>
