@@ -47,11 +47,11 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
 
   return (
     <Card className="shadow-lg">
-      <CardHeader className="p-4 pb-3">
+      <CardHeader className="p-4">
         <CardTitle className="font-headline text-xl">Manage Categories</CardTitle>
         <CardDescription>Create and organize your activity categories.</CardDescription>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
+      <CardContent className="p-4">
         <form onSubmit={handleAddCategory} className="space-y-4 mb-4">
           <div className="space-y-1.5">
             <Label htmlFor="categoryName" className="font-medium text-sm">New Category Name</Label>
@@ -94,7 +94,7 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
             {categories.map((category) => (
               <li 
                 key={category.id} 
-                className="flex items-center justify-between py-2.5 px-1 border-b last:border-b-0 border-border/70"
+                className="flex items-center justify-between py-3 px-2 border-b last:border-b-0 border-border/70"
               >
                 <div className="flex items-center gap-2.5">
                   <GetIcon name={category.icon} className="h-4 w-4 text-muted-foreground" />
