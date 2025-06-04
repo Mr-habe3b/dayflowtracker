@@ -29,11 +29,11 @@ const HOURS_IN_DAY = 24;
 const NO_CATEGORY_VALUE = "__NO_CATEGORY_VALUE__";
 const NO_PRIORITY_VALUE = "__NO_PRIORITY_VALUE__";
 
-const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: string; icon?: React.ElementType, iconColor?: string }[] = [
+const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: string; icon?: React.ElementType, iconClass?: string }[] = [
   { value: NO_PRIORITY_VALUE, label: 'None' },
-  { value: 'high', label: 'High', icon: ArrowUp, iconColor: 'text-red-500' },
-  { value: 'medium', label: 'Medium', icon: Minus, iconColor: 'text-yellow-500' },
-  { value: 'low', label: 'Low', icon: ArrowDown, iconColor: 'text-green-500' },
+  { value: 'high', label: 'High', icon: ArrowUp, iconClass: 'text-destructive-foreground' }, // Changed icon color for high priority
+  { value: 'medium', label: 'Medium', icon: Minus, iconClass: 'text-yellow-500' }, // Kept original for medium for distinction
+  { value: 'low', label: 'Low', icon: ArrowDown, iconClass: 'text-green-500' }, // Kept original for low for distinction
 ];
 
 const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
@@ -121,12 +121,18 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
   const getPriorityDisplay = (priority: Priority | null) => {
     if (!priority) return null;
     const option = priorityOptions.find(p => p.value === priority);
-    if (!option || !option.icon) return <Badge variant="outline" className="capitalize">{priority}</Badge>;
+    if (!option) return <Badge variant="outline" className="capitalize">{priority}</Badge>;
+    
+    let badgeVariant: "default" | "destructive" | "secondary" | "outline" = "outline";
+    if (priority === 'high') badgeVariant = 'destructive';
+    else if (priority === 'medium') badgeVariant = 'secondary';
+
     const IconComponent = option.icon;
+
     return (
-      <Badge variant={priority === 'high' ? 'destructive' : priority === 'medium' ? 'secondary' : 'outline'} className="capitalize flex items-center gap-1">
-        <IconComponent className={`h-3 w-3 ${option.iconColor || ''}`} />
-        {priority}
+      <Badge variant={badgeVariant} className="capitalize flex items-center gap-1">
+        {IconComponent && <IconComponent className={`h-3 w-3 ${option.iconClass || ''}`} />}
+        {option.label}
       </Badge>
     );
   };
@@ -141,7 +147,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
             <CardDescription>Log your activities, category, and priority for each hour of the day. AI suggestions appear as you type in "Activity Description".</CardDescription>
           </div>
           {currentDateTime && (
-            <div className="text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2">
+            <div className="text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2 shrink-0">
               <CalendarDays className="h-4 w-4" />
               <span>{currentDateTime}</span>
             </div>
@@ -175,8 +181,6 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                         onOpenChange={(isOpen) => {
                           if (!isOpen) {
                             setActiveSuggestionInputHour(null);
-                            // Do not clear suggestions here, they might be relevant if user re-focuses.
-                            // Or if an AI call is in flight, it might repopulate.
                           }
                         }}
                       >
@@ -188,8 +192,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                               setActiveSuggestionInputHour(hour);
                               setCurrentFocusedValue(e.target.value);
                               if (e.target.value.trim()) {
-                                // Optionally fetch suggestions on focus if there's already text.
-                                // For now, suggestions are triggered by onChange.
+                                // Suggestions are triggered by onChange or if already focused and text exists
                               } else {
                                   setActivitySuggestions([]); 
                               }
@@ -214,7 +217,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                             className="w-[var(--radix-popover-trigger-width)] p-1" 
                             side="bottom" 
                             align="start"
-                            onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+                            onOpenAutoFocus={(e) => e.preventDefault()} 
                         >
                           {suggestionsLoading && activeSuggestionInputHour === hour ? (
                             <div className="p-2 text-sm text-muted-foreground text-center flex items-center justify-center">
@@ -292,7 +295,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                           {priorityOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               <div className="flex items-center gap-2">
-                                {option.icon && <option.icon className={`h-4 w-4 ${option.iconColor || ''}`} />}
+                                {option.icon && <option.icon className={`h-4 w-4 ${option.iconClass || ''}`} />}
                                 {option.label}
                               </div>
                             </SelectItem>

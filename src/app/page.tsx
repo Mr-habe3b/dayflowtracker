@@ -7,7 +7,7 @@ import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
-import { BrainCircuit } from 'lucide-react';
+import { BrainCircuit, Clock } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
 const LOCAL_STORAGE_KEY_ACTIVITIES = 'dayflow_activities';
@@ -109,19 +109,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="p-4 shadow-md bg-card border-b border-border">
         <div className="container mx-auto flex items-center gap-2">
-           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-8 w-8 text-primary"
-          >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+           <Clock className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-headline font-semibold text-primary">
             DayFlow Tracker
           </h1>
