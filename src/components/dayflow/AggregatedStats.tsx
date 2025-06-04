@@ -38,13 +38,13 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
         {categoryTime.length === 0 ? (
           <p className="text-muted-foreground">No activities logged yet or no time allocated to categories.</p>
         ) : (
-          <div className="space-y-4">
-            <div className="h-[200px] w-full">
+          <div className="space-y-3">
+            <div className="h-[180px] w-full">
                <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryTime} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} interval={0} />
-                  <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                  <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
@@ -58,9 +58,9 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {categoryTime.map((item) => (
-                <li key={item.name} className="flex items-center justify-between py-1.5 px-1 text-sm">
+                <li key={item.name} className="flex items-center justify-between py-1 px-2 text-sm rounded-md hover:bg-muted/50">
                   <div className="flex items-center gap-2">
                     <GetIcon name={item.icon} className="h-4 w-4" style={{color: item.fill}}/>
                     <span>{item.name}</span>
@@ -75,4 +75,3 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
     </Card>
   );
 }
-
