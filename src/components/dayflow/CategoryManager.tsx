@@ -92,9 +92,9 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
         ) : (
           <ul className="space-y-1.5">
             {categories.map((category) => (
-              <li key={category.id} className="flex items-center justify-between p-2 rounded-md border-b border-border last:border-b-0">
+              <li key={category.id} className="flex items-center justify-between p-1.5 rounded-md">
                 <div className="flex items-center gap-2">
-                  <GetIcon name={category.icon} className="h-5 w-5 text-primary" />
+                  <GetIcon name={category.icon} className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">{category.name}</span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => onDeleteCategory(category.id)} aria-label={`Delete ${category.name} category`}>

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,7 +18,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 271 100% 25.1%; /* Deep Indigo #4B0082 */
+    --primary: 281 86% 36%; /* Vibrant Purple from image (e.g., #6A0DAD) */
     --primary-foreground: 0 0% 98%; /* Light color for text on primary */
 
     --secondary: 240 4.8% 95.9%; /* Default light gray */
@@ -26,7 +27,7 @@ body {
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 180 100% 25.1%; /* Teal #008080 */
+    --accent: 180 100% 32%; /* Vibrant Teal from image (e.g., #00A3A3) */
     --accent-foreground: 0 0% 98%; /* Light color for text on accent */
 
     --destructive: 0 84.2% 60.2%;
@@ -34,7 +35,7 @@ body {
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 271 100% 25.1%; /* Primary color for focus rings */
+    --ring: 281 86% 36%; /* Primary color for focus rings */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -64,8 +65,8 @@ body {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 271 100% 50.1%; /* Adjusted Deep Indigo for dark mode */
-    --primary-foreground: 0 0% 9%;
+    --primary: 281 86% 55%; /* Lighter Purple for dark mode */
+    --primary-foreground: 0 0% 9%; /* Dark text for contrast */
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -73,15 +74,15 @@ body {
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 180 100% 35.1%; /* Adjusted Teal for dark mode */
-    --accent-foreground: 0 0% 98%;
+    --accent: 180 100% 45%; /* Lighter Teal for dark mode */
+    --accent-foreground: 240 10% 3.9%; /* Dark text for contrast */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 271 100% 50.1%; /* Adjusted primary for focus rings in dark mode */
+    --ring: 281 86% 55%; /* Adjusted primary for focus rings in dark mode */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
