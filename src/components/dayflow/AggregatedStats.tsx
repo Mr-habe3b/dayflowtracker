@@ -41,23 +41,20 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {categoryTime.map((item) => (
-              <Card key={item.id} className="shadow-md">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {item.name}
-                  </CardTitle>
-                  <GetIcon name={item.icon} className="h-5 w-5" style={{ color: item.color }} />
-                </CardHeader>
-                <CardContent className="pt-1">
-                  <div className="text-3xl font-bold" style={{ color: item.color }}>
-                    {item.hours} 
-                    <span className="text-2xl font-semibold ml-1">
-                      hour{item.hours === 1 ? '' : 's'}
+              <Card key={item.id} className="shadow-sm">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center space-x-3">
+                    <GetIcon name={item.icon} className="h-5 w-5 shrink-0" style={{ color: item.color }} />
+                    <span className="text-base font-semibold leading-tight">{item.name}</span>
+                  </div>
+                  <div className="flex items-baseline shrink-0 pl-2">
+                    <span className="text-2xl font-bold" style={{ color: item.color }}>
+                      {item.hours}
+                    </span>
+                    <span className="text-xs font-medium ml-1 text-muted-foreground">
+                      hr{item.hours === 1 ? '' : 's'}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Logged for today
-                  </p>
                 </CardContent>
               </Card>
             ))}
