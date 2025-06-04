@@ -2,7 +2,7 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,12 @@ import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { GetIcon } from './icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowUp, ArrowDown, Minus, CalendarDays } from 'lucide-react';
+import { AlertTriangle, ArrowUp, ArrowDown, Minus, CalendarDays, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { suggestActivity } from '@/ai/flows/suggest-activity-flow';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface DayViewProps {
   activities: ActivityLog[];
@@ -32,8 +36,35 @@ const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: stri
   { value: 'low', label: 'Low', icon: ArrowDown, iconColor: 'text-green-500' },
 ];
 
+const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+    new Promise(resolve => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+    });
+};
+
 export function DayView({ activities, categories, onActivityChange }: DayViewProps) {
   const [currentDateTime, setCurrentDateTime] = useState('');
+  const { toast } = useToast();
+
+  const [activitySuggestions, setActivitySuggestions] = useState<string[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [activeSuggestionInputHour, setActiveSuggestionInputHour] = useState<number | null>(null);
+  const [currentFocusedValue, setCurrentFocusedValue] = useState('');
+
+  const activeSuggestionInputHourRef = useRef(activeSuggestionInputHour);
+  const currentFocusedValueRef = useRef(currentFocusedValue);
+
+  useEffect(() => {
+    activeSuggestionInputHourRef.current = activeSuggestionInputHour;
+  }, [activeSuggestionInputHour]);
+
+  useEffect(() => {
+    currentFocusedValueRef.current = currentFocusedValue;
+  }, [currentFocusedValue]);
+
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -43,6 +74,43 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
     const intervalId = setInterval(updateDateTime, 60000); // Update every minute
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
+
+  const fetchSuggestionsCallback = useCallback(async (inputValue: string, forHour: number) => {
+    const currentActiveHour = activeSuggestionInputHourRef.current;
+    const currentVal = currentFocusedValueRef.current;
+
+    if (!inputValue.trim() || currentActiveHour !== forHour || currentVal !== inputValue) {
+      if (currentActiveHour === forHour) { // Only clear if suggestions were for this input
+         setActivitySuggestions([]);
+      }
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    setSuggestionsLoading(true);
+    try {
+      const result = await suggestActivity({ currentInput: inputValue, hour: forHour });
+      if (activeSuggestionInputHourRef.current === forHour && currentFocusedValueRef.current === inputValue) {
+        setActivitySuggestions(result.suggestions || []);
+      }
+    } catch (error) {
+      console.error('Error fetching activity suggestions:', error);
+      toast({ title: 'Suggestion Error', description: 'Could not fetch suggestions.', variant: 'destructive'});
+      if (activeSuggestionInputHourRef.current === forHour && currentFocusedValueRef.current === inputValue) {
+        setActivitySuggestions([]);
+      }
+    } finally {
+      if (activeSuggestionInputHourRef.current === forHour && currentFocusedValueRef.current === inputValue) {
+         setSuggestionsLoading(false);
+      } else if (!inputValue.trim() && activeSuggestionInputHourRef.current === forHour) {
+         setSuggestionsLoading(false);
+         setActivitySuggestions([]);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast]); // toast is stable from useToast
+
+  const debouncedFetchSuggestions = useCallback(debounce(fetchSuggestionsCallback, 500), [fetchSuggestionsCallback]);
 
 
   const formatHour = (hour: number): string => {
@@ -70,7 +138,7 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="font-headline text-xl">Daily Activity Log</CardTitle>
-            <CardDescription>Log your activities, category, and priority for each hour of the day.</CardDescription>
+            <CardDescription>Log your activities, category, and priority for each hour of the day. AI suggestions appear as you type in "Activity Description".</CardDescription>
           </div>
           {currentDateTime && (
             <div className="text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-md shadow-sm flex items-center gap-2">
@@ -101,14 +169,80 @@ export function DayView({ activities, categories, onActivityChange }: DayViewPro
                 return (
                   <TableRow key={hour} className="hover:bg-muted/20 transition-colors duration-150">
                     <TableCell className="font-medium py-3">{formatHour(hour)}</TableCell>
-                    <TableCell className="py-3">
-                      <Input
-                        type="text"
-                        value={activity?.description || ''}
-                        onChange={(e) => onActivityChange(hour, 'description', e.target.value)}
-                        placeholder="What were you doing?"
-                        className="bg-white focus:ring-accent text-sm"
-                      />
+                    <TableCell className="py-3 relative">
+                      <Popover
+                        open={activeSuggestionInputHour === hour && currentFocusedValueRef.current.length > 0 && (activitySuggestions.length > 0 || suggestionsLoading)}
+                        onOpenChange={(isOpen) => {
+                          if (!isOpen) {
+                            setActiveSuggestionInputHour(null);
+                            // Do not clear suggestions here, they might be relevant if user re-focuses.
+                            // Or if an AI call is in flight, it might repopulate.
+                          }
+                        }}
+                      >
+                        <PopoverTrigger asChild>
+                          <Input
+                            type="text"
+                            value={activity?.description || ''}
+                            onFocus={(e) => {
+                              setActiveSuggestionInputHour(hour);
+                              setCurrentFocusedValue(e.target.value);
+                              if (e.target.value.trim()) {
+                                // Optionally fetch suggestions on focus if there's already text.
+                                // For now, suggestions are triggered by onChange.
+                              } else {
+                                  setActivitySuggestions([]); 
+                              }
+                            }}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              onActivityChange(hour, 'description', newValue);
+                              setCurrentFocusedValue(newValue);
+                              if (newValue.trim()) {
+                                setActiveSuggestionInputHour(hour); 
+                                debouncedFetchSuggestions(newValue, hour);
+                              } else {
+                                setActivitySuggestions([]);
+                                setActiveSuggestionInputHour(null); 
+                              }
+                            }}
+                            placeholder="What were you doing?"
+                            className="bg-white focus:ring-accent text-sm"
+                          />
+                        </PopoverTrigger>
+                        <PopoverContent 
+                            className="w-[var(--radix-popover-trigger-width)] p-1" 
+                            side="bottom" 
+                            align="start"
+                            onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+                        >
+                          {suggestionsLoading && activeSuggestionInputHour === hour ? (
+                            <div className="p-2 text-sm text-muted-foreground text-center flex items-center justify-center">
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Loading suggestions...
+                            </div>
+                          ) : (
+                            activitySuggestions.map((suggestion, idx) => (
+                              <Button
+                                key={idx}
+                                variant="ghost"
+                                className="w-full justify-start p-2 text-sm h-auto text-left whitespace-normal"
+                                onClick={() => {
+                                  onActivityChange(hour, 'description', suggestion);
+                                  setCurrentFocusedValue(suggestion); 
+                                  setActivitySuggestions([]);
+                                  setActiveSuggestionInputHour(null);
+                                }}
+                              >
+                                {suggestion}
+                              </Button>
+                            ))
+                          )}
+                          {!suggestionsLoading && activitySuggestions.length === 0 && currentFocusedValueRef.current.length > 0 && activeSuggestionInputHour === hour && (
+                              <div className="p-2 text-sm text-muted-foreground text-center">No suggestions found.</div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
                     </TableCell>
                     <TableCell className="py-3">
                       <Select
