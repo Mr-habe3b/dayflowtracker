@@ -7,8 +7,8 @@ import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
-import { BrainCircuit, Clock } from 'lucide-react';
-import { format, parseISO, startOfDay } from 'date-fns'; // Added for date formatting
+import { Clock } from 'lucide-react'; // Updated icon from BrainCircuit to Clock
+import { format, startOfDay } from 'date-fns';
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
 const ACTIVITY_LOG_PREFIX = 'dayflow_activities_';
@@ -40,7 +40,7 @@ const getDefaultActivities = (): ActivityLog[] => {
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>(getDefaultActivities());
-  const [currentDate, setCurrentDate] = useState<Date>(startOfDay(new Date())); // Track the current day being viewed
+  const [currentDate, setCurrentDate] = useState<Date>(startOfDay(new Date()));
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -54,7 +54,6 @@ export default function Home() {
     }
   }, []);
 
-  // Load activities for the current date when component mounts or date changes
   useEffect(() => {
     if (isClient) {
       const dateKey = getActivitiesStorageKey(currentDate);
@@ -68,28 +67,20 @@ export default function Home() {
     }
   }, [currentDate, isClient]);
 
-  // Save categories to localStorage
   useEffect(() => {
-    if(isClient && categories.length > 0) { // Ensure default categories are set before saving
+    if(isClient && categories.length > 0) {
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
     }
   }, [categories, isClient]);
 
-  // Save activities for the current date to localStorage
   useEffect(() => {
     if(isClient) {
       const dateKey = getActivitiesStorageKey(currentDate);
-      // Only save if activities are not the initial empty set, or if they have been modified
       const hasMeaningfulData = activities.some(act => act.description || act.categoryId || act.priority);
-      if (activities.length === 24 && hasMeaningfulData) { // ensure it's a full day's log
+      if (activities.length === 24 && hasMeaningfulData) {
          localStorage.setItem(dateKey, JSON.stringify(activities));
       } else if (activities.length === 24 && !hasMeaningfulData) {
-        // If it's a blank day, we might want to remove it or not save it to avoid clutter
-        // For now, let's save it to reflect that the day was "empty" if user interacted.
-        // Or, only save if there's actual data:
-        // if (hasMeaningfulData) localStorage.setItem(dateKey, JSON.stringify(activities));
-        // else localStorage.removeItem(dateKey); // Optional: clean up empty days
-         localStorage.setItem(dateKey, JSON.stringify(activities)); // For simplicity, save even if empty
+         localStorage.setItem(dateKey, JSON.stringify(activities)); 
       }
     }
   }, [activities, currentDate, isClient]);
@@ -119,12 +110,10 @@ export default function Home() {
     );
   };
 
-  // TODO: Add UI to change currentDate (e.g., a date picker)
-
   if (!isClient) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <BrainCircuit className="h-16 w-16 text-primary animate-pulse mb-4" />
+        <Clock className="h-16 w-16 text-primary animate-pulse mb-4" />
         <p className="text-xl text-foreground font-medium">Loading DayFlow Tracker...</p>
       </div>
     );
@@ -132,7 +121,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="p-4 shadow-md bg-card border-b border-border">
+      <header className="py-4 px-4 md:px-8 shadow-none bg-transparent"> {/* Removed shadow, border, bg-card for cleaner look matching image */}
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-8 w-8 text-primary" />
@@ -153,7 +142,7 @@ export default function Home() {
               activities={activities}
               categories={categories}
               onActivityChange={handleActivityChange}
-              currentDay={currentDate} // Pass current date to DayView
+              currentDay={currentDate}
             />
           </section>
           <aside className="space-y-6 lg:col-span-1">
@@ -167,7 +156,7 @@ export default function Home() {
           </aside>
         </div>
       </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border mt-auto bg-card">
+      <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border/50 mt-auto bg-transparent"> {/* Lighter border, transparent background */}
         © {new Date().getFullYear()} DayFlow Tracker. Your day, organized.
       </footer>
     </div>

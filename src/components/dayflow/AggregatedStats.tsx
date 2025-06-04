@@ -4,8 +4,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { ActivityLog, Category } from '@/types/dayflow';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, Label } from 'recharts';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; // Added
-import { GetIcon } from './icons'; // Added
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { GetIcon } from './icons';
 
 interface AggregatedStatsProps {
   activities: ActivityLog[];
@@ -41,14 +41,14 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
           <p className="text-muted-foreground text-center py-8">No time allocated to categories yet.</p>
         ) : (
           <>
-            <div style={{ width: '100%', height: 250 }}>
+            <div style={{ width: '100%', height: 200 }}> {/* Reduced height slightly for "small" design */}
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={categoryTime}
                   margin={{
                     top: 5,
                     right: 20,
-                    left: -10,
+                    left: -10, 
                     bottom: 5,
                   }}
                 >
@@ -67,7 +67,7 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
                       angle={-90} 
                       position="insideLeft" 
                       style={{ textAnchor: 'middle', fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                      offset={10}
+                      offset={10} // Adjusted offset for better positioning
                     />
                   </YAxis>
                   <Tooltip
@@ -85,7 +85,7 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
                     payload={
                       categoryTime.map(item => ({
                         value: item.name,
-                        type: 'square',
+                        type: 'square', // Default square legend items
                         color: item.color,
                         id: item.id,
                       }))
