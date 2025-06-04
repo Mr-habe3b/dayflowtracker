@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -46,12 +47,12 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
 
   return (
     <Card className="shadow-lg">
-      <CardHeader>
+      <CardHeader className="p-4">
         <CardTitle className="font-headline text-xl">Manage Categories</CardTitle>
         <CardDescription>Create and organize your activity categories.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleAddCategory} className="space-y-4 mb-6">
+      <CardContent className="p-4 pt-0">
+        <form onSubmit={handleAddCategory} className="space-y-3 mb-4">
           <div className="space-y-2">
             <Label htmlFor="categoryName" className="font-medium">New Category Name</Label>
             <Input
@@ -89,9 +90,9 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
         {categories.length === 0 ? (
           <p className="text-muted-foreground">No categories added yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
             {categories.map((category) => (
-              <li key={category.id} className="flex items-center justify-between p-3 bg-secondary rounded-md shadow-sm">
+              <li key={category.id} className="flex items-center justify-between p-2 rounded-md border-b border-border last:border-b-0">
                 <div className="flex items-center gap-2">
                   <GetIcon name={category.icon} className="h-5 w-5 text-primary" />
                   <span className="font-medium">{category.name}</span>
