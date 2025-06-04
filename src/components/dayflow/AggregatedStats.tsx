@@ -3,14 +3,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { ActivityLog, Category } from '@/types/dayflow';
-import { GetIcon } from './icons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, Label } from 'recharts';
 
 interface AggregatedStatsProps {
   activities: ActivityLog[];
   categories: Category[];
 }
 
-// Predefined distinct colors for chart bars (can be used for text/icon colors)
 const COLORS = [
   'hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))',
   'hsl(var(--chart-4))', 'hsl(var(--chart-5))', '#0088FE', '#00C49F',
@@ -23,11 +22,11 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
     return {
       id: category.id,
       name: category.name,
-      icon: category.icon,
-      hours: count, // Each activity log represents one hour
-      color: COLORS[index % COLORS.length], // Assign a color
+      icon: category.icon, // Kept for potential future use, not directly used in this chart version
+      hours: count,
+      color: COLORS[index % COLORS.length],
     };
-  }).filter(ct => ct.hours > 0); // Only show categories with logged time
+  }).filter(ct => ct.hours > 0);
 
   return (
     <Card className="shadow-lg">
@@ -37,27 +36,67 @@ export function AggregatedStats({ activities, categories }: AggregatedStatsProps
       </CardHeader>
       <CardContent>
         {categoryTime.length === 0 ? (
-          <p className="text-muted-foreground">No activities logged yet or no time allocated to categories.</p>
+          <p className="text-muted-foreground text-center py-8">No time allocated to categories yet.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {categoryTime.map((item) => (
-              <Card key={item.id} className="shadow-sm">
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center space-x-3">
-                    <GetIcon name={item.icon} className="h-5 w-5 shrink-0" style={{ color: item.color }} />
-                    <span className="text-base font-semibold leading-tight">{item.name}</span>
-                  </div>
-                  <div className="flex items-baseline shrink-0 pl-2">
-                    <span className="text-2xl font-bold" style={{ color: item.color }}>
-                      {item.hours}
-                    </span>
-                    <span className="text-xs font-medium ml-1 text-muted-foreground">
-                      hr{item.hours === 1 ? '' : 's'}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div style={{ width: '100%', height: 250 }}> {/* Ensure div has dimensions for ResponsiveContainer */}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={categoryTime}
+                margin={{
+                  top: 5,
+                  right: 20, // Adjusted for better spacing
+                  left: -10, // Adjusted for Y-axis label to fit
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
+                  interval={0} // Show all labels if possible
+                  angle={-15} // Angle labels if they overlap
+                  textAnchor="end" // Adjust text anchor for angled labels
+                  height={40} // Increase height for XAxis to accommodate angled labels
+                />
+                <YAxis allowDecimals={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}>
+                  <Label 
+                    value="Hours" 
+                    angle={-90} 
+                    position="insideLeft" 
+                    style={{ textAnchor: 'middle', fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                    offset={10} // Adjust offset to position label correctly
+                  />
+                </YAxis>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--popover))',
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: 'var(--radius)',
+                    color: 'hsl(var(--popover-foreground))',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                  }}
+                  labelStyle={{ marginBottom: '4px', fontWeight: '500' }}
+                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
+                />
+                <Legend
+                  payload={
+                    categoryTime.map(item => ({
+                      value: item.name,
+                      type: 'square',
+                      color: item.color,
+                      id: item.id,
+                    }))
+                  }
+                  wrapperStyle={{ fontSize: 12, paddingTop: '15px' }}
+                  iconSize={10}
+                />
+                <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+                  {categoryTime.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         )}
       </CardContent>
