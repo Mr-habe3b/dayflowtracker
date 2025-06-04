@@ -47,26 +47,26 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
 
   return (
     <Card className="shadow-lg">
-      <CardHeader className="p-4">
+      <CardHeader className="p-4 pb-3">
         <CardTitle className="font-headline text-xl">Manage Categories</CardTitle>
         <CardDescription>Create and organize your activity categories.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-        <form onSubmit={handleAddCategory} className="space-y-3 mb-4">
-          <div className="space-y-2">
-            <Label htmlFor="categoryName" className="font-medium">New Category Name</Label>
+        <form onSubmit={handleAddCategory} className="space-y-4 mb-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="categoryName" className="font-medium text-sm">New Category Name</Label>
             <Input
               id="categoryName"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="e.g., Work, Study, Exercise"
-              className="bg-white"
+              className="bg-white text-sm"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="categoryIcon" className="font-medium">Icon</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="categoryIcon" className="font-medium text-sm">Icon</Label>
             <Select value={newCategoryIcon} onValueChange={setNewCategoryIcon}>
-              <SelectTrigger id="categoryIcon" className="bg-white">
+              <SelectTrigger id="categoryIcon" className="bg-white text-sm">
                 <SelectValue placeholder="Select an icon" />
               </SelectTrigger>
               <SelectContent>
@@ -81,24 +81,33 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
             <PlusCircle className="mr-2 h-4 w-4" /> Add Category
           </Button>
         </form>
 
-        <h3 className="font-semibold mb-2 text-lg">Existing Categories:</h3>
+        <h3 className="font-semibold mb-2 text-base">Existing Categories:</h3>
         {categories.length === 0 ? (
-          <p className="text-muted-foreground">No categories added yet.</p>
+          <p className="text-muted-foreground text-sm">No categories added yet.</p>
         ) : (
-          <ul className="space-y-1.5">
+          <ul className="space-y-0">
             {categories.map((category) => (
-              <li key={category.id} className="flex items-center justify-between p-1.5 rounded-md">
-                <div className="flex items-center gap-2">
+              <li 
+                key={category.id} 
+                className="flex items-center justify-between py-2.5 px-1 border-b last:border-b-0 border-border/70"
+              >
+                <div className="flex items-center gap-2.5">
                   <GetIcon name={category.icon} className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{category.name}</span>
+                  <span className="font-medium text-sm">{category.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => onDeleteCategory(category.id)} aria-label={`Delete ${category.name} category`}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => onDeleteCategory(category.id)} 
+                  aria-label={`Delete ${category.name} category`}
+                  className="h-7 w-7"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
                 </Button>
               </li>
             ))}
