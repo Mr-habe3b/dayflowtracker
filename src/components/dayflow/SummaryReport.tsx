@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -214,7 +215,7 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
           value={report}
           onChange={handleReportChange}
           rows={10}
-          className="bg-white border-muted-foreground/30 focus:ring-accent text-sm"
+          className="border-muted-foreground/30 focus:ring-accent text-sm"
           placeholder={
             isLoading || isDownloading 
             ? "Processing..." 

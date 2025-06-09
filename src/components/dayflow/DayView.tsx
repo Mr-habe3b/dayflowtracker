@@ -361,7 +361,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                 }
                                 }}
                                 placeholder="What were you doing?"
-                                className="bg-white focus:ring-accent text-sm flex-grow"
+                                className="focus:ring-accent text-sm flex-grow"
                             />
                             </PopoverTrigger>
                             <PopoverContent
@@ -441,7 +441,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                           onActivityChange(hour, 'categoryId', actualValue);
                         }}
                       >
-                        <SelectTrigger className="bg-white focus:ring-accent text-sm">
+                        <SelectTrigger className="focus:ring-accent text-sm">
                           <SelectValue placeholder="Select category">
                             {currentCategory ? (
                               <div className="flex items-center gap-2">
@@ -472,7 +472,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                           onActivityChange(hour, 'priority', actualValue);
                         }}
                       >
-                        <SelectTrigger className="bg-white focus:ring-accent text-sm">
+                        <SelectTrigger className="focus:ring-accent text-sm">
                            <SelectValue>
                             {getPriorityDisplay(currentPriority)}
                           </SelectValue>

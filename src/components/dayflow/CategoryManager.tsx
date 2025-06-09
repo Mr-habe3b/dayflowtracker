@@ -61,13 +61,13 @@ export function CategoryManager({ categories, onAddCategory, onDeleteCategory }:
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="e.g., Work, Study, Exercise"
-              className="bg-white text-sm"
+              className="text-sm"
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="categoryIcon" className="font-medium text-sm">Icon</Label>
             <Select value={newCategoryIcon} onValueChange={setNewCategoryIcon}>
-              <SelectTrigger id="categoryIcon" className="bg-white text-sm">
+              <SelectTrigger id="categoryIcon" className="text-sm">
                 <SelectValue placeholder="Select an icon" />
               </SelectTrigger>
               <SelectContent>
