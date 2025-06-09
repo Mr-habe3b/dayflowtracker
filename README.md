@@ -11,25 +11,27 @@ This document provides a comprehensive overview of the DayFlow Tracker applicati
 
 ## 2. Features
 
-*   **Hourly Activity Logging**: Track activities for each hour of the day.
+*   **Hourly Activity Logging**: Track activities for each hour of the day (0-23).
 *   **Date Navigation**: View and log activities for any selected date. Data is saved per day.
-*   **Customizable Categories**: Define personalized activity categories with unique names and icons (from `lucide-react`), displayed as scrollable tags.
-*   **Activity Prioritization**: Assign 'High', 'Medium', or 'Low' priority to tasks.
-*   **15-Minute Interval Notes**: Log detailed notes for each 15-minute segment within an hour.
-*   **Optional 15-Minute Reminders**: Enable toast notifications to remind you to log activities or notes every 15 minutes, with a convenience buffer for the initial reminder.
-*   **AI-Powered Activity Suggestions**: Receive real-time activity description suggestions as you type, powered by Gemini.
-*   **Aggregated Daily Stats**: Visualize time spent on each category with a bar chart and a supplementary row of scrollable category tags.
-*   **AI Daily Summary Report**: Get an AI-generated summary of the day's activities, highlighting key tasks based on priority and description.
+*   **Customizable Categories**: Define personalized activity categories with unique names and icons (from `lucide-react`), displayed as scrollable tags. Categories can be added and deleted.
+*   **Activity Prioritization**: Assign 'High', 'Medium', or 'Low' priority to tasks, each visually distinct.
+*   **15-Minute Interval Notes**: Log detailed notes for each 15-minute segment within an hour (:00, :15, :30, :45). (See section 2.1 for details)
+*   **Optional 15-Minute Reminders**: Enable toast notifications to remind you to log activities or notes every 15 minutes, with a convenience buffer for the initial reminder. (See section 2.1 for details)
+*   **AI-Powered Activity Suggestions**: Receive real-time activity description suggestions as you type in the activity log, powered by Gemini.
+*   **Aggregated Daily Stats**: Visualize time spent on each category with a bar chart and a supplementary row of scrollable category tags showing hours allocated.
+*   **AI Daily Summary Report**: Get an AI-generated summary of the day's activities, highlighting key tasks based on priority and description. This summary is **editable** by the user directly in the text area.
 *   **Downloadable CSV Reports**:
     *   Download a comprehensive daily report in CSV format for the selected day.
     *   Includes:
-        *   Detailed hourly activity log.
-        *   Time allocation summary (data for creating graphs in Excel/Sheets).
+        *   Detailed hourly activity log (Hour, Activity, Category, Priority).
+        *   Time allocation summary (Category, Hours - data for creating graphs in Excel/Sheets).
         *   AI-generated "Professional Growth Report".
         *   AI-generated "Improvement Suggestions".
-*   **Dynamic UI**: Live clock displaying current day, date, and time.
+*   **Dynamic UI**:
+    *   Live clock displaying current day, date, and time, updating every minute.
+    *   **Theme Customization**: Toggle between Light, Dark, and System themes. User preference is saved locally.
 *   **Responsive Design**: User-friendly interface on desktop and mobile devices.
-*   **Local Data Persistence**: All activity logs and category settings are saved in the browser's localStorage, organized by date for activities.
+*   **Local Data Persistence**: All activity logs (including 15-minute notes) and category settings are saved in the browser's localStorage, organized by date for activities.
 
 ### 2.1. Using 15-Minute Notes and Reminders
 
@@ -57,6 +59,7 @@ The DayFlow Tracker includes features for more granular time tracking and remind
     *   The toast notification will read: "15-Minute Reminder - Time to log or review notes! Current time: [Actual Time]".
 *   **How Reminders Work (When OFF):**
     *   Toggling the switch OFF cancels any scheduled reminders. No further notifications will be shown unless the alarm is re-enabled.
+*   **Information**: An info icon (`Info`) next to the reminder toggle provides a quick on-screen guide to these 15-minute features.
 
 ## 3. Technical Stack
 
@@ -69,6 +72,7 @@ The DayFlow Tracker includes features for more granular time tracking and remind
     *   Lucide Icons
 *   **Styling**:
     *   Tailwind CSS (with custom theme in `globals.css`)
+    *   `next-themes` for Light/Dark/System theme management.
 *   **AI Integration**:
     *   Genkit
     *   Google Gemini (via `@genkit-ai/googleai`)
@@ -150,8 +154,10 @@ The application consists of two main parts: the Next.js frontend and the Genkit 
         *   `layout.tsx`: Root layout.
         *   `globals.css`: Global styles and Tailwind CSS theme.
     *   `components/`: Reusable React components.
-        *   `dayflow/`: Components specific to the DayFlow Tracker functionality (DayView, CategoryManager, etc.).
+        *   `dayflow/`: Components specific to the DayFlow Tracker functionality (DayView, CategoryManager, AggregatedStats, SummaryReport, icons).
         *   `ui/`: ShadCN UI components.
+        *   `theme-provider.tsx`: Provider for theme management.
+        *   `theme-toggle.tsx`: Button to toggle themes.
     *   `ai/`: Genkit AI integration.
         *   `flows/`: Definitions for AI flows (e.g., report generation, activity suggestions).
         *   `genkit.ts`: Genkit global instance initialization.
@@ -175,16 +181,16 @@ The application utilizes several Genkit flows for its intelligent features:
 *   **Purpose**: Provides real-time activity suggestions as the user types in the activity description field.
 *   **Input**: Current user input string and optionally the hour of the day (0-23).
 *   **Output**: An array of 3-5 relevant activity string suggestions.
-*   **Behavior**: Called on-the-fly to assist with faster and more consistent activity logging.
+*   **Behavior**: Called on-the-fly to assist with faster and more consistent activity logging. Suggestions appear in a popover below the input field.
 
 ### 7.2. `src/ai/flows/generate-summary-report.ts`
 *   **Purpose**: Generates a daily summary report based on the logged activities for a specific day.
 *   **Input**: JSON string of the day's activities, including hour, description, category, and priority.
 *   **Output**: A string containing a narrative summary, highlighting key activities and up to 5 top important tasks based on priority.
-*   **Behavior**: Used to provide a quick overview of the day's accomplishments and focus areas.
+*   **Behavior**: Used to provide a quick overview of the day's accomplishments and focus areas. The generated report is displayed in a textarea and can be edited by the user.
 
 ### 7.3. `src/ai/flows/generate-professional-growth-report.ts`
-*   **Purpose**: Analyzes daily activities to provide a professional growth report and actionable improvement suggestions.
+*   **Purpose**: Analyzes daily activities to provide a professional growth report and actionable improvement suggestions. This is part of the downloadable CSV report.
 *   **Input**: JSON string of the day's activities.
 *   **Output**: An object containing:
     *   `professionalGrowthReport`: Text analyzing productive patterns or skill development areas.
@@ -197,12 +203,21 @@ The application uses the browser's `localStorage` for data persistence, ensuring
 
 *   **Categories**:
     *   **Key**: `dayflow_categories`
-    *   **Data**: An array of user-defined `Category` objects.
+    *   **Data**: An array of user-defined `Category` objects (id, name, icon).
     *   **Scope**: Global for the application.
 *   **Activity Logs**:
     *   **Key**: `dayflow_activities_YYYY-MM-DD` (e.g., `dayflow_activities_2023-10-27`)
-    *   **Data**: An array of `ActivityLog` objects for the specified date (includes hourly description, category, priority, and 15-minute notes).
+    *   **Data**: An array of `ActivityLog` objects for the specified date. Each `ActivityLog` object includes:
+        *   `hour` (number, 0-23)
+        *   `description` (string)
+        *   `categoryId` (string | null)
+        *   `priority` (Priority type: 'high', 'medium', 'low' | null)
+        *   `notes15Min` (array of 4 strings, for :00, :15, :30, :45 intervals)
     *   **Scope**: Each day's log is stored as a separate entry, allowing users to navigate and manage activities for different dates.
+*   **Theme Preference**:
+    *   **Key**: `theme` (managed by `next-themes` library)
+    *   **Data**: String indicating the selected theme (e.g., 'light', 'dark', 'system').
+    *   **Scope**: Global for the application.
 
 This local storage strategy allows for easy retrieval of data for specific dates and persistence of user preferences.
 
