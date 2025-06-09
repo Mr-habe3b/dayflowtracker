@@ -66,7 +66,7 @@ body {
     --popover-foreground: 0 0% 98%;
 
     --primary: 281 70% 65%; /* Lighter, less saturated Purple for dark mode */
-    --primary-foreground: 0 0% 98%; /* Light text for contrast */
+    --primary-foreground: 240 10% 10%; /* Dark text for contrast on lighter dark mode primary */
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -75,7 +75,7 @@ body {
     --muted-foreground: 240 5% 64.9%;
 
     --accent: 180 70% 55%; /* Lighter, less saturated Teal for dark mode */
-    --accent-foreground: 0 0% 98%; /* Light text for contrast */
+    --accent-foreground: 240 10% 10%; /* Dark text for contrast on lighter dark mode accent */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
