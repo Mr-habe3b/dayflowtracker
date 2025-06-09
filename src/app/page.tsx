@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-// import Image from 'next/image'; // Removed Image import
 import { DayView } from '@/components/dayflow/DayView';
 import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
@@ -10,6 +9,7 @@ import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { Clock } from 'lucide-react'; 
 import { format, startOfDay } from 'date-fns';
+import { ThemeToggle } from '@/components/theme-toggle'; // Added ThemeToggle
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
 const ACTIVITY_LOG_PREFIX = 'dayflow_activities_';
@@ -44,6 +44,7 @@ export default function Home() {
   const [activities, setActivities] = useState<ActivityLog[]>(getDefaultActivities());
   const [currentDate, setCurrentDate] = useState<Date>(startOfDay(new Date()));
   const [isClient, setIsClient] = useState(false);
+  const [liveTime, setLiveTime] = useState<string>(''); // For live time updates
 
   useEffect(() => {
     setIsClient(true);
@@ -54,6 +55,13 @@ export default function Home() {
       setCategories(DEFAULT_CATEGORIES);
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
     }
+
+    const timer = setInterval(() => {
+      setLiveTime(format(new Date(), 'EEEE, h:mm a'));
+    }, 60000); // Update every minute
+    setLiveTime(format(new Date(), 'EEEE, h:mm a')); // Initial set
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -91,7 +99,6 @@ export default function Home() {
       if (activities.length === 24 && hasMeaningfulData) {
          localStorage.setItem(dateKey, JSON.stringify(activities));
       } else if (activities.length === 24 && !hasMeaningfulData) {
-         // Still save if it's default empty, to overwrite previous potentially non-empty logs for that day if user cleared everything
          localStorage.setItem(dateKey, JSON.stringify(activities)); 
       }
     }
@@ -159,14 +166,15 @@ export default function Home() {
               DayFlow Tracker
             </h1>
           </div>
-          <div className="text-right">
-            <p className="font-semibold text-lg text-primary">{format(currentDate, 'MMMM d, yyyy')}</p>
-            <p className="text-sm text-muted-foreground">{format(currentDate, 'EEEE')}</p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="font-semibold text-lg text-primary">{format(currentDate, 'MMMM d, yyyy')}</p>
+              <p className="text-sm text-muted-foreground">{liveTime ? liveTime.split(',')[0] : format(new Date(), 'EEEE')}</p> {/* Display only Day from liveTime */}
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
-
-      {/* The Image banner section that was here has been removed */}
 
       <main className="flex-grow p-4 md:p-6 lg:p-8 container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
