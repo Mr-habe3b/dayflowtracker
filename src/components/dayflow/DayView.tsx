@@ -25,7 +25,7 @@ interface DayViewProps {
   activities: ActivityLog[];
   categories: Category[];
   onActivityChange: (hour: number, field: 'description' | 'categoryId' | 'priority', value: string | Priority | null) => void;
-  on15MinNoteChange: (hour: number, intervalIndex: number, value: string) => void; // New prop
+  on15MinNoteChange: (hour: number, intervalIndex: number, value: string) => void;
   currentDay: Date; 
 }
 
@@ -82,45 +82,48 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
     return () => clearInterval(intervalId);
   }, []);
 
+  const scheduleNextNotification = useCallback((isInitialCall: boolean) => {
+    if (alarmIntervalRef.current) {
+      clearTimeout(alarmIntervalRef.current);
+    }
+
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+
+    let minutesToNextAbsInterval = 0;
+    if (minutes < 15) minutesToNextAbsInterval = 15 - minutes;
+    else if (minutes < 30) minutesToNextAbsInterval = 30 - minutes;
+    else if (minutes < 45) minutesToNextAbsInterval = 45 - minutes;
+    else minutesToNextAbsInterval = 60 - minutes;
+
+    let msToNextAbsInterval = (minutesToNextAbsInterval * 60 - seconds) * 1000 + 500;
+
+    if (msToNextAbsInterval <= 500) { 
+      msToNextAbsInterval += (15 * 60 * 1000);
+    } else if (isInitialCall && msToNextAbsInterval < (2 * 60 * 1000)) { // 2 minute threshold
+        msToNextAbsInterval += (15 * 60 * 1000);
+    }
+    
+    const finalMillisecondsToWait = Math.max(1000, msToNextAbsInterval);
+
+    alarmIntervalRef.current = setTimeout(() => {
+      toast({
+        title: "15-Minute Reminder",
+        description: `Time to log or review notes! Current time: ${format(new Date(), "HH:mm")}`,
+        duration: 7000, 
+      });
+      if (alarmEnabled) { // Check alarmEnabled state directly from state, not closure
+        scheduleNextNotification(false); // Subsequent calls are not initial
+      }
+    }, finalMillisecondsToWait);
+  }, [alarmEnabled, toast]);
+
+
   // 15-Minute Alarm Logic
   useEffect(() => {
-    const scheduleNextNotification = () => {
-      if (alarmIntervalRef.current) {
-        clearTimeout(alarmIntervalRef.current);
-      }
-
-      const now = new Date();
-      const minutes = now.getMinutes();
-      const seconds = now.getSeconds();
-
-      let minutesToNextInterval = 0;
-      if (minutes < 15) minutesToNextInterval = 15 - minutes;
-      else if (minutes < 30) minutesToNextInterval = 30 - minutes;
-      else if (minutes < 45) minutesToNextInterval = 45 - minutes;
-      else minutesToNextInterval = 60 - minutes; // to next hour's 00
-
-      // Calculate milliseconds to wait. Add a small buffer (e.g., 500ms) to ensure it triggers after the minute starts.
-      let millisecondsToWait = (minutesToNextInterval * 60 - seconds) * 1000 + 500;
-      
-      if (millisecondsToWait <= 500) { // If we are already past the interval or very close
-        millisecondsToWait = (15 * 60 * 1000) + 500; // Schedule for the next 15-min block
-      }
-      
-      alarmIntervalRef.current = setTimeout(() => {
-        toast({
-          title: "15-Minute Reminder",
-          description: `Time to log or review notes! Current time: ${format(new Date(), "HH:mm")}`,
-          duration: 7000, 
-        });
-        // playBeepSound(); // Optional: Implement sound
-        if (alarmEnabled) { // Check again in case it was disabled during timeout
-            scheduleNextNotification(); // Reschedule for the next interval
-        }
-      }, millisecondsToWait);
-    };
-
     if (alarmEnabled) {
-      scheduleNextNotification();
+      scheduleNextNotification(true); // isInitialCall is true
     } else {
       if (alarmIntervalRef.current) {
         clearTimeout(alarmIntervalRef.current);
@@ -133,7 +136,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
         clearTimeout(alarmIntervalRef.current);
       }
     };
-  }, [alarmEnabled, toast]);
+  }, [alarmEnabled, scheduleNextNotification]);
 
 
   const fetchSuggestionsCallback = useCallback(async (inputValue: string, forHour: number) => {
@@ -231,7 +234,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
         </div>
       </CardHeader>
       <CardContent className="flex-grow overflow-hidden">
-        <ScrollArea className="h-[calc(100vh-320px)] md:h-[calc(100vh-300px)] pr-4"> {/* Adjusted height for new switch */}
+        <ScrollArea className="h-[calc(100vh-320px)] md:h-[calc(100vh-300px)] pr-4">
           <Table>
             <TableHeader className="sticky top-0 bg-card z-10">
               <TableRow>
@@ -326,7 +329,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                         </Popover>
                         <Popover>
                             <PopoverTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-10 w-10 shrink-0"> {/* Adjusted size to match input */}
+                            <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
                                 <ListChecks className="h-4 w-4" />
                                 <span className="sr-only">15-min Notes</span>
                             </Button>
