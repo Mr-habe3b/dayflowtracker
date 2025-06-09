@@ -12,13 +12,21 @@ import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { GetIcon } from './icons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUp, ArrowDown, Minus, CalendarDays, Loader2, ListChecks, BellRing } from 'lucide-react';
+import { ArrowUp, ArrowDown, Minus, CalendarDays, Loader2, ListChecks, BellRing, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { suggestActivity } from '@/ai/flows/suggest-activity-flow';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 
 interface DayViewProps {
@@ -101,7 +109,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
 
     if (msToNextAbsInterval <= 500) { 
       msToNextAbsInterval += (15 * 60 * 1000);
-    } else if (isInitialCall && msToNextAbsInterval < (2 * 60 * 1000)) { // 2 minute threshold
+    } else if (isInitialCall && msToNextAbsInterval < (2 * 60 * 1000)) { 
         msToNextAbsInterval += (15 * 60 * 1000);
     }
     
@@ -113,17 +121,16 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
         description: `Time to log or review notes! Current time: ${format(new Date(), "HH:mm")}`,
         duration: 7000, 
       });
-      if (alarmEnabled) { // Check alarmEnabled state directly from state, not closure
-        scheduleNextNotification(false); // Subsequent calls are not initial
+      if (alarmEnabled) { 
+        scheduleNextNotification(false); 
       }
     }, finalMillisecondsToWait);
   }, [alarmEnabled, toast]);
 
 
-  // 15-Minute Alarm Logic
   useEffect(() => {
     if (alarmEnabled) {
-      scheduleNextNotification(true); // isInitialCall is true
+      scheduleNextNotification(true); 
     } else {
       if (alarmIntervalRef.current) {
         clearTimeout(alarmIntervalRef.current);
@@ -131,7 +138,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
       }
     }
 
-    return () => { // Cleanup on unmount or when alarmEnabled changes
+    return () => { 
       if (alarmIntervalRef.current) {
         clearTimeout(alarmIntervalRef.current);
       }
@@ -229,6 +236,69 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                 <Label htmlFor="alarm-mode" className="text-sm font-medium text-muted-foreground">
                     15-Min Reminders
                 </Label>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-accent">
+                      <Info className="h-4 w-4" />
+                      <span className="sr-only">How to use 15-minute features</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-semibold">Using 15-Minute Features</DialogTitle>
+                      <DialogDescription className="mt-1">
+                        How to use the 15-minute notes and reminders.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4 text-sm text-foreground">
+                      <div>
+                        <h4 className="font-semibold mb-1">1. 15-Minute Notes:</h4>
+                        <ul className="list-disc list-outside pl-5 space-y-1 text-muted-foreground">
+                          <li>
+                            <strong>Accessing Notes:</strong> In the "Daily Activity Log" table, each hour row has an input field for the main activity description. To the right of this field, you'll find a <strong>checklist icon button</strong> (`ListChecks`). Clicking this button opens a popover specific to that hour.
+                          </li>
+                          <li>
+                            <strong>Logging Interval Notes:</strong> Inside the popover, there are four input fields corresponding to the 15-minute intervals of the hour:
+                            <ul className="list-disc list-outside pl-5 mt-1">
+                                <li><code>:00</code> (e.g., notes for 9:00 - 9:14)</li>
+                                <li><code>:15</code> (e.g., notes for 9:15 - 9:29)</li>
+                                <li><code>:30</code> (e.g., notes for 9:30 - 9:44)</li>
+                                <li><code>:45</code> (e.g., notes for 9:45 - 9:59)</li>
+                            </ul>
+                            You can enter detailed notes for each segment. These notes are saved automatically as you type and are linked to the specific hour.
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-1">2. 15-Minute Alarm (Reminders):</h4>
+                        <ul className="list-disc list-outside pl-5 space-y-1 text-muted-foreground">
+                          <li>
+                            <strong>Enabling/Disabling:</strong> At the top right of the "Daily Activity Log" card, near the live date and time display, there's a <strong>toggle switch</strong> next to a <strong>bell icon</strong> (`BellRing`) labeled "15-Min Reminders." Use this switch to turn the reminders ON or OFF.
+                          </li>
+                          <li>
+                            <strong>How Reminders Work (When ON):</strong>
+                            <ul className="list-disc list-outside pl-5 mt-1 space-y-0.5">
+                                <li>When activated, the app schedules a toast notification for the next 15-minute mark of the current hour (e.g., :00, :15, :30, :45).</li>
+                                <li>
+                                    <strong>Convenience Buffer (Initial Reminder):</strong> For the very first reminder after you enable the alarm:
+                                    <ul className="list-disc list-outside pl-5 mt-0.5">
+                                        <li>If the next 15-minute mark is <strong>less than 2 minutes away</strong>, the alarm will skip that immediate mark and schedule the first reminder for the <em>following</em> 15-minute mark. (e.g., if enabled at 10:14 AM, first reminder is at 10:30 AM).</li>
+                                        <li>If the next 15-minute mark is <strong>2 minutes or more away</strong>, the first reminder will be for that upcoming mark as usual (e.g., if enabled at 10:10 AM, first reminder is at 10:15 AM).</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Subsequent Reminders:</strong> After the initial reminder, notifications will appear every 15 minutes.</li>
+                                <li>The toast notification will read: "15-Minute Reminder - Time to log or review notes! Current time: [Actual Time]".</li>
+                            </ul>
+                          </li>
+                           <li>
+                            <strong>How Reminders Work (When OFF):</strong>
+                                <p className="mt-0.5">Toggling the switch OFF cancels any scheduled reminders. No further notifications will be shown unless the alarm is re-enabled.</p>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
             </div>
           </div>
         </div>
@@ -261,7 +331,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                             open={activeSuggestionInputHour === hour && currentFocusedValueRef.current.length > 0 && (activitySuggestions.length > 0 || suggestionsLoading)}
                             onOpenChange={(isOpen) => {
                             if (!isOpen) {
-                                // setActiveSuggestionInputHour(null); // Keep suggestions if popover closes due to blur
+                                // setActiveSuggestionInputHour(null); 
                             }
                             }}
                         >
@@ -429,3 +499,4 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
     </Card>
   );
 }
+
