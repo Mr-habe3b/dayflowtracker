@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image'; // Added Image import
 import { DayView } from '@/components/dayflow/DayView';
 import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
@@ -164,6 +165,19 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      <div className="container mx-auto px-4 md:px-8 my-6">
+        <Image
+          src="https://placehold.co/1200x300.png"
+          alt="App feature banner"
+          width={1200}
+          height={300}
+          className="w-full h-auto rounded-lg shadow-md object-cover"
+          data-ai-hint="abstract vibrant"
+          priority
+        />
+      </div>
+
       <main className="flex-grow p-4 md:p-6 lg:p-8 container mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <section className="lg:col-span-2">
@@ -171,7 +185,7 @@ export default function Home() {
               activities={activities}
               categories={categories}
               onActivityChange={handleActivityChange}
-              on15MinNoteChange={handle15MinNoteChange} // Pass new handler
+              on15MinNoteChange={handle15MinNoteChange}
               currentDay={currentDate}
             />
           </section>
