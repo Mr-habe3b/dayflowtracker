@@ -40,7 +40,7 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
-    setReport('');
+    setReport(''); // Clear previous report before generating a new one
 
     const trackingDataForAI = getTrackingDataForAI();
 
@@ -155,6 +155,10 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
     }
   };
 
+  const handleReportChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setReport(event.target.value);
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -186,13 +190,14 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
             )}
           </Button>
         </div>
-        {report && (
+        {(report || isLoading || isDownloading) && ( // Show textarea if report has content or if loading/downloading
           <Textarea
             value={report}
-            readOnly
+            onChange={handleReportChange} // Allow editing
             rows={10}
             className="bg-white border-muted-foreground/30 focus:ring-accent text-sm"
-            placeholder="Your summary report will appear here."
+            placeholder="Your AI summary report will appear here once generated..."
+            disabled={isLoading || isDownloading} // Disable textarea while loading/downloading to prevent edits to intermediate state
           />
         )}
         {!report && !isLoading && !isDownloading && (
