@@ -65,7 +65,7 @@ body {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 281 86% 55%; /* Lighter Purple for dark mode */
+    --primary: 281 70% 65%; /* Lighter, less saturated Purple for dark mode */
     --primary-foreground: 0 0% 98%; /* Light text for contrast */
 
     --secondary: 240 3.7% 15.9%;
@@ -74,7 +74,7 @@ body {
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 180 100% 45%; /* Lighter Teal for dark mode */
+    --accent: 180 70% 55%; /* Lighter, less saturated Teal for dark mode */
     --accent-foreground: 0 0% 98%; /* Light text for contrast */
 
     --destructive: 0 62.8% 30.6%;
@@ -82,7 +82,7 @@ body {
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 281 86% 55%; /* Adjusted primary for focus rings in dark mode */
+    --ring: 281 70% 65%; /* Adjusted primary for focus rings in dark mode */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
