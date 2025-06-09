@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image'; // Added Image import
+import Image from 'next/image';
 import { DayView } from '@/components/dayflow/DayView';
 import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
@@ -83,25 +83,15 @@ export default function Home() {
   }, [currentDate, isClient]);
 
   useEffect(() => {
-    if(isClient && categories.length > 0) {
+    if(isClient) { // Save categories whenever they change, including to an empty array
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
     }
   }, [categories, isClient]);
 
   useEffect(() => {
-    if(isClient) {
+    if(isClient && activities.length === 24) { // Simplified: save if client-side and activities array is of correct length
       const dateKey = getActivitiesStorageKey(currentDate);
-      const hasMeaningfulData = activities.some(act => 
-        act.description || 
-        act.categoryId || 
-        act.priority ||
-        (act.notes15Min && act.notes15Min.some(note => note.trim() !== ''))
-      );
-      if (activities.length === 24 && hasMeaningfulData) {
-         localStorage.setItem(dateKey, JSON.stringify(activities));
-      } else if (activities.length === 24 && !hasMeaningfulData) {
-         localStorage.setItem(dateKey, JSON.stringify(activities)); 
-      }
+      localStorage.setItem(dateKey, JSON.stringify(activities));
     }
   }, [activities, currentDate, isClient]);
 
