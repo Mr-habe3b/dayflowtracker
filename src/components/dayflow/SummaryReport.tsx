@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -9,13 +8,13 @@ import type { ActivityLog, Category } from '@/types/dayflow';
 import { generateSummaryReport } from '@/ai/flows/generate-summary-report';
 import { generateProfessionalGrowthReport } from '@/ai/flows/generate-professional-growth-report';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Zap, Download } from 'lucide-react';
+import { FileText, Zap, Download, Eraser } from 'lucide-react'; // Added Eraser
 import { format } from 'date-fns';
 
 interface SummaryReportProps {
   activities: ActivityLog[];
   categories: Category[];
-  reportDate: Date; // Added to know which date the report is for
+  reportDate: Date;
 }
 
 export function SummaryReport({ activities, categories, reportDate }: SummaryReportProps) {
@@ -40,7 +39,7 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
-    setReport(''); // Clear previous report before generating a new one
+    setReport(''); 
 
     const trackingDataForAI = getTrackingDataForAI();
 
@@ -159,18 +158,27 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
     setReport(event.target.value);
   };
 
+  const handleClearReport = () => {
+    setReport('');
+    toast({ title: 'Summary Cleared', description: 'The AI-generated summary has been cleared.' });
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle className="font-headline text-xl">AI Summary & Reports</CardTitle>
+        <CardTitle className="font-headline text-xl">AI Summary &amp; Reports</CardTitle>
         <CardDescription>Get AI insights and download your daily activity log for {format(reportDate, 'MMMM d, yyyy')}.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <Button onClick={handleGenerateReport} disabled={isLoading || isDownloading} className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-            {isLoading ? (
+          <Button 
+            onClick={handleGenerateReport} 
+            disabled={isLoading || isDownloading} 
+            className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+          >
+            {isLoading && !isDownloading ? (
               <>
-                <Zap className="mr-2 h-4 w-4 animate-pulse" /> Generating Summary...
+                <Zap className="mr-2 h-4 w-4 animate-pulse" /> Generating...
               </>
             ) : (
               <>
@@ -178,33 +186,42 @@ export function SummaryReport({ activities, categories, reportDate }: SummaryRep
               </>
             )}
           </Button>
-          <Button onClick={handleDownloadReport} disabled={isDownloading || isLoading} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button 
+            onClick={handleDownloadReport} 
+            disabled={isDownloading || isLoading} 
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
             {isDownloading ? (
               <>
-                <Zap className="mr-2 h-4 w-4 animate-pulse" /> Preparing Download...
+                <Zap className="mr-2 h-4 w-4 animate-pulse" /> Preparing...
               </>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" /> Download Daily Report (CSV)
+                <Download className="mr-2 h-4 w-4" /> Download Report
               </>
             )}
           </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleClearReport} 
+            disabled={isLoading || isDownloading || !report} 
+            className="flex-1 sm:flex-none"
+          >
+            <Eraser className="mr-2 h-4 w-4" /> Clear
+          </Button>
         </div>
-        {(report || isLoading || isDownloading) && ( // Show textarea if report has content or if loading/downloading
-          <Textarea
-            value={report}
-            onChange={handleReportChange} // Allow editing
-            rows={10}
-            className="bg-white border-muted-foreground/30 focus:ring-accent text-sm"
-            placeholder="Your AI summary report will appear here once generated..."
-            disabled={isLoading || isDownloading} // Disable textarea while loading/downloading to prevent edits to intermediate state
-          />
-        )}
-        {!report && !isLoading && !isDownloading && (
-            <div className="text-center text-muted-foreground p-4 border border-dashed rounded-md">
-                Click "Generate Summary" to see your AI insights or "Download Report" for a CSV file for the selected day.
-            </div>
-        )}
+        <Textarea
+          value={report}
+          onChange={handleReportChange}
+          rows={10}
+          className="bg-white border-muted-foreground/30 focus:ring-accent text-sm"
+          placeholder={
+            isLoading || isDownloading 
+            ? "Processing..." 
+            : "Your AI summary report will appear here once generated. You can also type your own notes."
+          }
+          disabled={isLoading || isDownloading}
+        />
       </CardContent>
     </Card>
   );
