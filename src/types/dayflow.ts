@@ -12,4 +12,6 @@ export type ActivityLog = {
   description: string;
   categoryId: string | null;
   priority: Priority | null;
+  notes15Min?: string[]; // Array of 4 strings for :00, :15, :30, :45 intervals
 };
+

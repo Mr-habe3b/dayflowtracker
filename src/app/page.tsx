@@ -7,7 +7,7 @@ import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
-import { Clock } from 'lucide-react'; // Updated icon from BrainCircuit to Clock
+import { Clock } from 'lucide-react'; 
 import { format, startOfDay } from 'date-fns';
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
@@ -34,6 +34,7 @@ const getDefaultActivities = (): ActivityLog[] => {
     description: '',
     categoryId: null,
     priority: null,
+    notes15Min: ['', '', '', ''], // Initialize 15-minute notes
   }));
 };
 
@@ -60,7 +61,11 @@ export default function Home() {
       const storedActivities = localStorage.getItem(dateKey);
       if (storedActivities) {
         const parsedActivities = JSON.parse(storedActivities) as ActivityLog[];
-        setActivities(parsedActivities.map(act => ({ ...act, priority: act.priority || null })));
+        setActivities(parsedActivities.map(act => ({ 
+          ...act, 
+          priority: act.priority || null,
+          notes15Min: act.notes15Min || ['', '', '', ''] // Ensure notes15Min is initialized
+        })));
       } else {
         setActivities(getDefaultActivities());
       }
@@ -76,10 +81,16 @@ export default function Home() {
   useEffect(() => {
     if(isClient) {
       const dateKey = getActivitiesStorageKey(currentDate);
-      const hasMeaningfulData = activities.some(act => act.description || act.categoryId || act.priority);
+      const hasMeaningfulData = activities.some(act => 
+        act.description || 
+        act.categoryId || 
+        act.priority ||
+        (act.notes15Min && act.notes15Min.some(note => note.trim() !== ''))
+      );
       if (activities.length === 24 && hasMeaningfulData) {
          localStorage.setItem(dateKey, JSON.stringify(activities));
       } else if (activities.length === 24 && !hasMeaningfulData) {
+         // Still save if it's default empty, to overwrite previous potentially non-empty logs for that day if user cleared everything
          localStorage.setItem(dateKey, JSON.stringify(activities)); 
       }
     }
@@ -110,6 +121,24 @@ export default function Home() {
     );
   };
 
+  const handle15MinNoteChange = (
+    hour: number,
+    intervalIndex: number, // 0-3
+    value: string
+  ) => {
+    setActivities((prev) =>
+      prev.map((act) => {
+        if (act.hour === hour) {
+          const updatedNotes = [...(act.notes15Min || ['', '', '', ''])];
+          updatedNotes[intervalIndex] = value;
+          return { ...act, notes15Min: updatedNotes };
+        }
+        return act;
+      })
+    );
+  };
+
+
   if (!isClient) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
@@ -121,7 +150,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="py-4 px-4 md:px-8 shadow-none bg-transparent"> {/* Removed shadow, border, bg-card for cleaner look matching image */}
+      <header className="py-4 px-4 md:px-8 shadow-none bg-transparent">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-8 w-8 text-primary" />
@@ -142,6 +171,7 @@ export default function Home() {
               activities={activities}
               categories={categories}
               onActivityChange={handleActivityChange}
+              on15MinNoteChange={handle15MinNoteChange} // Pass new handler
               currentDay={currentDate}
             />
           </section>
@@ -156,7 +186,7 @@ export default function Home() {
           </aside>
         </div>
       </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border/50 mt-auto bg-transparent"> {/* Lighter border, transparent background */}
+      <footer className="text-center p-4 text-sm text-muted-foreground border-t border-border/50 mt-auto bg-transparent">
         © {new Date().getFullYear()} DayFlow Tracker. Your day, organized.
       </footer>
     </div>
