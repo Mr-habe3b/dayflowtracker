@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image'; // Added Image import
 import { DayView } from '@/components/dayflow/DayView';
 import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
@@ -9,7 +10,7 @@ import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
 import { Clock } from 'lucide-react'; 
 import { format, startOfDay } from 'date-fns';
-import { ThemeToggle } from '@/components/theme-toggle'; // Added ThemeToggle
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const LOCAL_STORAGE_KEY_CATEGORIES = 'dayflow_categories';
 const ACTIVITY_LOG_PREFIX = 'dayflow_activities_';
@@ -161,7 +162,14 @@ export default function Home() {
       <header className="py-4 px-4 md:px-8 shadow-none bg-transparent">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="h-8 w-8 text-primary" />
+            <Image 
+              src="https://placehold.co/40x40.png" 
+              alt="App Logo" 
+              width={40} 
+              height={40}
+              className="rounded"
+              data-ai-hint="logo brand" 
+            />
             <h1 className="text-3xl font-headline font-semibold text-primary">
               DayFlow Tracker
             </h1>
