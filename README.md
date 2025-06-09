@@ -13,10 +13,12 @@ This document provides a comprehensive overview of the DayFlow Tracker applicati
 
 *   **Hourly Activity Logging**: Track activities for each hour of the day.
 *   **Date Navigation**: View and log activities for any selected date. Data is saved per day.
-*   **Customizable Categories**: Define personalized activity categories with unique names and icons (from `lucide-react`).
+*   **Customizable Categories**: Define personalized activity categories with unique names and icons (from `lucide-react`), displayed as scrollable tags.
 *   **Activity Prioritization**: Assign 'High', 'Medium', or 'Low' priority to tasks.
+*   **15-Minute Interval Notes**: Log detailed notes for each 15-minute segment within an hour.
+*   **Optional 15-Minute Reminders**: Enable toast notifications to remind you to log activities or notes every 15 minutes, with a convenience buffer for the initial reminder.
 *   **AI-Powered Activity Suggestions**: Receive real-time activity description suggestions as you type, powered by Gemini.
-*   **Aggregated Daily Stats**: Visualize time spent on each category with a bar chart.
+*   **Aggregated Daily Stats**: Visualize time spent on each category with a bar chart and a supplementary row of scrollable category tags.
 *   **AI Daily Summary Report**: Get an AI-generated summary of the day's activities, highlighting key tasks based on priority and description.
 *   **Downloadable CSV Reports**:
     *   Download a comprehensive daily report in CSV format for the selected day.
@@ -29,6 +31,33 @@ This document provides a comprehensive overview of the DayFlow Tracker applicati
 *   **Responsive Design**: User-friendly interface on desktop and mobile devices.
 *   **Local Data Persistence**: All activity logs and category settings are saved in the browser's localStorage, organized by date for activities.
 
+### 2.1. Using 15-Minute Notes and Reminders
+
+The DayFlow Tracker includes features for more granular time tracking and reminders:
+
+**1. 15-Minute Notes:**
+
+*   **Accessing Notes:** In the "Daily Activity Log" table, each hour row has an input field for the main activity description. To the right of this field, you'll find a **checklist icon button** (`ListChecks`). Clicking this button opens a popover specific to that hour.
+*   **Logging Interval Notes:** Inside the popover, there are four input fields corresponding to the 15-minute intervals of the hour:
+    *   `:00` (e.g., notes for 9:00 - 9:14)
+    *   `:15` (e.g., notes for 9:15 - 9:29)
+    *   `:30` (e.g., notes for 9:30 - 9:44)
+    *   `:45` (e.g., notes for 9:45 - 9:59)
+    You can enter detailed notes for each segment. These notes are saved automatically as you type and are linked to the specific hour.
+
+**2. 15-Minute Alarm (Reminders):**
+
+*   **Enabling/Disabling:** At the top right of the "Daily Activity Log" card, near the live date and time display, there's a **toggle switch** next to a **bell icon** (`BellRing`) labeled "15-Min Reminders." Use this switch to turn the reminders ON or OFF.
+*   **How Reminders Work (When ON):**
+    *   When activated, the app schedules a toast notification for the next 15-minute mark of the current hour (e.g., :00, :15, :30, :45).
+    *   **Convenience Buffer (Initial Reminder):** For the very first reminder after you enable the alarm:
+        *   If the next 15-minute mark is **less than 2 minutes away**, the alarm will skip that immediate mark and schedule the first reminder for the *following* 15-minute mark. (e.g., if enabled at 10:14 AM, first reminder is at 10:30 AM).
+        *   If the next 15-minute mark is **2 minutes or more away**, the first reminder will be for that upcoming mark as usual (e.g., if enabled at 10:10 AM, first reminder is at 10:15 AM).
+    *   **Subsequent Reminders:** After the initial reminder, notifications will appear every 15 minutes.
+    *   The toast notification will read: "15-Minute Reminder - Time to log or review notes! Current time: [Actual Time]".
+*   **How Reminders Work (When OFF):**
+    *   Toggling the switch OFF cancels any scheduled reminders. No further notifications will be shown unless the alarm is re-enabled.
+
 ## 3. Technical Stack
 
 *   **Frontend**:
@@ -39,7 +68,7 @@ This document provides a comprehensive overview of the DayFlow Tracker applicati
     *   ShadCN UI
     *   Lucide Icons
 *   **Styling**:
-    *   Tailwind CSS
+    *   Tailwind CSS (with custom theme in `globals.css`)
 *   **AI Integration**:
     *   Genkit
     *   Google Gemini (via `@genkit-ai/googleai`)
@@ -172,7 +201,7 @@ The application uses the browser's `localStorage` for data persistence, ensuring
     *   **Scope**: Global for the application.
 *   **Activity Logs**:
     *   **Key**: `dayflow_activities_YYYY-MM-DD` (e.g., `dayflow_activities_2023-10-27`)
-    *   **Data**: An array of `ActivityLog` objects for the specified date.
+    *   **Data**: An array of `ActivityLog` objects for the specified date (includes hourly description, category, priority, and 15-minute notes).
     *   **Scope**: Each day's log is stored as a separate entry, allowing users to navigate and manage activities for different dates.
 
 This local storage strategy allows for easy retrieval of data for specific dates and persistence of user preferences.
