@@ -27,6 +27,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { cn } from '@/lib/utils';
 
 
 interface DayViewProps {
@@ -41,11 +42,39 @@ const HOURS_IN_DAY = 24;
 const NO_CATEGORY_VALUE = "__NO_CATEGORY_VALUE__";
 const NO_PRIORITY_VALUE = "__NO_PRIORITY_VALUE__";
 
-const priorityOptions: { value: Priority | typeof NO_PRIORITY_VALUE; label: string; icon?: React.ElementType, iconClass?: string }[] = [
-  { value: NO_PRIORITY_VALUE, label: 'None' },
-  { value: 'high', label: 'High', icon: ArrowUp, iconClass: 'text-destructive-foreground' },
-  { value: 'medium', label: 'Medium', icon: Minus, iconClass: 'text-yellow-500' },
-  { value: 'low', label: 'Low', icon: ArrowDown, iconClass: 'text-green-500' },
+const priorityOptions: {
+  value: Priority | typeof NO_PRIORITY_VALUE;
+  label: string;
+  icon?: React.ElementType;
+  iconClass?: string;
+  badgeVariant?: "default" | "destructive" | "secondary" | "outline";
+  badgeCustomClass?: string;
+}[] = [
+  { value: NO_PRIORITY_VALUE, label: 'None', badgeVariant: 'outline', badgeCustomClass: 'text-muted-foreground' },
+  {
+    value: 'high',
+    label: 'High',
+    icon: ArrowUp,
+    iconClass: 'text-destructive-foreground',
+    badgeVariant: 'destructive',
+    badgeCustomClass: ''
+  },
+  {
+    value: 'medium',
+    label: 'Medium',
+    icon: Minus,
+    iconClass: 'text-yellow-700 dark:text-yellow-400',
+    badgeVariant: 'outline',
+    badgeCustomClass: 'border-yellow-400/80 bg-yellow-400/10 text-yellow-700 dark:border-yellow-600/80 dark:bg-yellow-600/20 dark:text-yellow-400 hover:bg-yellow-400/20 dark:hover:bg-yellow-600/30'
+  },
+  {
+    value: 'low',
+    label: 'Low',
+    icon: ArrowDown,
+    iconClass: 'text-green-700 dark:text-green-400',
+    badgeVariant: 'outline',
+    badgeCustomClass: 'border-green-500/80 bg-green-500/10 text-green-700 dark:border-green-600/80 dark:bg-green-600/20 dark:text-green-400 hover:bg-green-500/20 dark:hover:bg-green-600/30'
+  },
 ];
 
 const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
@@ -189,18 +218,17 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
   };
 
   const getPriorityDisplay = (priority: Priority | null) => {
-    if (!priority) return "Set priority"; 
-    const option = priorityOptions.find(p => p.value === priority);
-    if (!option || option.value === NO_PRIORITY_VALUE) return "Set priority";
+    const option = priorityOptions.find(p => p.value === (priority || NO_PRIORITY_VALUE));
     
-    let badgeVariant: "default" | "destructive" | "secondary" | "outline" = "outline";
-    if (priority === 'high') badgeVariant = 'destructive';
-    else if (priority === 'medium') badgeVariant = 'secondary';
-
+    if (!option || !priority) {
+      return <span className={cn("text-muted-foreground", option?.badgeCustomClass)}>Set priority</span>;
+    }
+    
+    const badgeVariantToUse = option.badgeVariant || 'outline';
     const IconComponent = option.icon;
 
     return (
-      <Badge variant={badgeVariant} className="capitalize flex items-center gap-1">
+      <Badge variant={badgeVariantToUse} className={cn("capitalize flex items-center gap-1 w-full justify-start", option.badgeCustomClass)}>
         {IconComponent && <IconComponent className={`h-3 w-3 ${option.iconClass || ''}`} />}
         {option.label}
       </Badge>
@@ -448,7 +476,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                 <GetIcon name={currentCategory.icon} className="h-4 w-4" />
                                 {currentCategory.name}
                               </div>
-                            ) : "Select category"}
+                            ) : <span className="text-muted-foreground">Select category</span>}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -472,7 +500,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                           onActivityChange(hour, 'priority', actualValue);
                         }}
                       >
-                        <SelectTrigger className="focus:ring-accent text-sm">
+                        <SelectTrigger className="focus:ring-accent text-sm w-full">
                            <SelectValue>
                             {getPriorityDisplay(currentPriority)}
                           </SelectValue>
@@ -480,7 +508,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                         <SelectContent>
                           {priorityOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center gap-2">
+                              <div className={cn("flex items-center gap-2", option.badgeCustomClass || (option.value === NO_PRIORITY_VALUE ? 'text-muted-foreground' : ''))}>
                                 {option.icon && <option.icon className={`h-4 w-4 ${option.iconClass || ''}`} />}
                                 {option.label}
                               </div>
