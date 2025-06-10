@@ -8,7 +8,7 @@ import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
-import { Clock } from 'lucide-react'; 
+// Removed Clock import as it's being replaced by the Image component for the loading screen
 import { format, startOfDay } from 'date-fns';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -83,13 +83,13 @@ export default function Home() {
   }, [currentDate, isClient]);
 
   useEffect(() => {
-    if(isClient) { // Save categories whenever they change, including to an empty array
+    if(isClient) { 
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
     }
   }, [categories, isClient]);
 
   useEffect(() => {
-    if(isClient && activities.length === 24) { // Simplified: save if client-side and activities array is of correct length
+    if(isClient && activities.length === 24) { 
       const dateKey = getActivitiesStorageKey(currentDate);
       localStorage.setItem(dateKey, JSON.stringify(activities));
     }
@@ -141,7 +141,15 @@ export default function Home() {
   if (!isClient) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <Clock className="h-16 w-16 text-primary animate-pulse mb-4" />
+        <Image 
+          src="https://placehold.co/64x64.png" // Using a slightly larger placeholder for loading, similar to h-16 w-16
+          alt="Loading DayFlow Tracker Logo" 
+          width={64} 
+          height={64}
+          className="rounded animate-pulse mb-4"
+          data-ai-hint="logo brand"
+          priority // Prioritize loading of this image
+        />
         <p className="text-xl text-foreground font-medium">Loading DayFlow Tracker...</p>
       </div>
     );
@@ -167,7 +175,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="font-semibold text-lg text-primary">{format(currentDate, 'MMMM d, yyyy')}</p>
-              <p className="text-sm text-muted-foreground">{liveTime ? liveTime.split(',')[0] : format(new Date(), 'EEEE')}</p> {/* Display only Day from liveTime */}
+              <p className="text-sm text-muted-foreground">{liveTime ? liveTime.split(',')[0] : format(new Date(), 'EEEE')}</p>
             </div>
             <ThemeToggle />
           </div>
