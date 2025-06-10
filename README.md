@@ -220,13 +220,4 @@ The application uses the browser's `localStorage` for data persistence, ensuring
     *   **Scope**: Global for the application.
 
 This local storage strategy allows for easy retrieval of data for specific dates and persistence of user preferences.
-
-## 9. Converting to PDF
-
-This Markdown document (`README.md`) can be easily converted to a PDF file using various tools, such as:
-*   Pandoc (a universal document converter).
-*   Online Markdown to PDF converters.
-*   Extensions within code editors like Visual Studio Code.
-
-This allows for a professionally formatted document suitable for corporate distribution.
 # dayflowtracker
