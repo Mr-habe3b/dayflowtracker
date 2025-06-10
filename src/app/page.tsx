@@ -82,13 +82,13 @@ export default function Home() {
   }, [currentDate, isClient]);
 
   useEffect(() => {
-    if(isClient && categories) { // Ensure categories array exists before stringifying
+    if(isClient && categories) { 
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
     }
   }, [categories, isClient]);
 
   useEffect(() => {
-    if(isClient && activities && activities.length > 0) { // Ensure activities array exists and is not empty
+    if(isClient && activities) { 
       const dateKey = getActivitiesStorageKey(currentDate);
       localStorage.setItem(dateKey, JSON.stringify(activities));
     }
@@ -141,7 +141,7 @@ export default function Home() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <Image
-          src="/logo.png"
+          src="https://placehold.co/64x64.png"
           alt="Loading DayFlow Tracker Logo"
           width={64}
           height={64}
@@ -160,7 +160,7 @@ export default function Home() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Image
-              src="/logo.png"
+              src="https://placehold.co/40x40.png"
               alt="App Logo"
               width={40}
               height={40}
