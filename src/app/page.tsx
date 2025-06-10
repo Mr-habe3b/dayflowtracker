@@ -8,7 +8,6 @@ import { CategoryManager } from '@/components/dayflow/CategoryManager';
 import { AggregatedStats } from '@/components/dayflow/AggregatedStats';
 import { SummaryReport } from '@/components/dayflow/SummaryReport';
 import type { ActivityLog, Category, Priority } from '@/types/dayflow';
-// Removed Clock import as it's being replaced by the Image component for the loading screen
 import { format, startOfDay } from 'date-fns';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -71,8 +70,8 @@ export default function Home() {
       const storedActivities = localStorage.getItem(dateKey);
       if (storedActivities) {
         const parsedActivities = JSON.parse(storedActivities) as ActivityLog[];
-        setActivities(parsedActivities.map(act => ({ 
-          ...act, 
+        setActivities(parsedActivities.map(act => ({
+          ...act,
           priority: act.priority || null,
           notes15Min: act.notes15Min || ['', '', '', ''] // Ensure notes15Min is initialized
         })));
@@ -83,13 +82,13 @@ export default function Home() {
   }, [currentDate, isClient]);
 
   useEffect(() => {
-    if(isClient) { 
+    if(isClient && categories) { // Ensure categories array exists before stringifying
       localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
     }
   }, [categories, isClient]);
 
   useEffect(() => {
-    if(isClient && activities.length === 24) { 
+    if(isClient && activities && activities.length > 0) { // Ensure activities array exists and is not empty
       const dateKey = getActivitiesStorageKey(currentDate);
       localStorage.setItem(dateKey, JSON.stringify(activities));
     }
@@ -141,14 +140,14 @@ export default function Home() {
   if (!isClient) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <Image 
-          src="https://placehold.co/64x64.png" // Using a slightly larger placeholder for loading, similar to h-16 w-16
-          alt="Loading DayFlow Tracker Logo" 
-          width={64} 
+        <Image
+          src="/logo.png"
+          alt="Loading DayFlow Tracker Logo"
+          width={64}
           height={64}
           className="rounded animate-pulse mb-4"
           data-ai-hint="logo brand"
-          priority // Prioritize loading of this image
+          priority
         />
         <p className="text-xl text-foreground font-medium">Loading DayFlow Tracker...</p>
       </div>
@@ -160,15 +159,15 @@ export default function Home() {
       <header className="py-4 px-4 md:px-8 shadow-none bg-transparent">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Image 
-              src="https://placehold.co/40x40.png" 
-              alt="App Logo" 
-              width={40} 
+            <Image
+              src="/logo.png"
+              alt="App Logo"
+              width={40}
               height={40}
               className="rounded"
-              data-ai-hint="logo brand" 
+              data-ai-hint="logo brand"
             />
-            <h1 className="text-3xl font-headline font-semibold text-primary">
+            <h1 className="text-2xl sm:text-3xl font-headline font-semibold text-primary">
               DayFlow Tracker
             </h1>
           </div>

@@ -1,7 +1,7 @@
 
 # DayFlow Tracker
 
-**Project Owner/Creator:** [Your Name / Your Organization Name Here]
+Project Owner/Creator: Mr-habe3b
 
 DayFlow Tracker is a Next.js web application designed to help users meticulously log their daily activities on an hourly basis. It offers features for categorizing activities, setting priorities, and leveraging AI-powered insights for generating summary reports and professional growth suggestions. The application uses Genkit with Google's Gemini model for its AI capabilities and stores data locally in the browser.
 
