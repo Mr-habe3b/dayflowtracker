@@ -141,7 +141,7 @@ export default function Home() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background">
         <Image
-          src="https://placehold.co/64x64.png"
+          src= /app/logo.png
           alt="Loading DayFlow Tracker Logo"
           width={64}
           height={64}
