@@ -282,18 +282,13 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                       <div>
                         <h4 className="font-semibold mb-1">15-Minute Notes:</h4>
                         <p className="text-muted-foreground text-xs">
-                          Click the <ListChecks className="inline h-3 w-3 relative -top-px" /> icon next to any hour's activity input to open a popover.
-                          There, you can add detailed notes for each 15-minute interval (:00, :15, :30, :45) of that hour. Notes save automatically.
+                          Click <ListChecks className="inline h-3 w-3 relative -top-px" /> to log notes for :00, :15, :30, :45 intervals per hour.
                         </p>
                       </div>
                       <div>
                         <h4 className="font-semibold mb-1">15-Minute Alarm:</h4>
                          <p className="text-muted-foreground text-xs">
-                          Use the toggle switch to enable/disable reminders.
-                          When ON, you'll get a toast notification every 15 minutes.
-                        </p>
-                        <p className="text-muted-foreground text-xs mt-1">
-                          <strong>Initial Reminder:</strong> If the next 15-min mark is &lt;2 mins away when you turn it ON, the first reminder skips to the *next* interval. Otherwise, it reminds at the upcoming mark.
+                          Toggle for reminders. First reminder skips if next mark is &lt;2 mins away.
                         </p>
                       </div>
                     </div>
@@ -330,9 +325,9 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                         <Popover
                             open={activeSuggestionInputHour === hour && currentFocusedValueRef.current.length > 0 && (activitySuggestions.length > 0 || suggestionsLoading)}
                             onOpenChange={(isOpen) => {
-                            if (!isOpen) {
-                                // setActiveSuggestionInputHour(null); 
-                            }
+                                if (!isOpen) {
+                                     setActiveSuggestionInputHour(null);
+                                }
                             }}
                         >
                             <PopoverTrigger asChild>
@@ -343,7 +338,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                 setActiveSuggestionInputHour(hour);
                                 setCurrentFocusedValue(e.target.value);
                                 if (e.target.value.trim()) {
-                                    // debouncedFetchSuggestions(e.target.value, hour);
+                                    // debouncedFetchSuggestions(e.target.value, hour); // Optionally fetch on focus if needed
                                 } else {
                                     setActivitySuggestions([]);
                                 }
@@ -353,12 +348,16 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                 onActivityChange(hour, 'description', newValue);
                                 setCurrentFocusedValue(newValue);
                                 if (newValue.trim()) {
-                                    setActiveSuggestionInputHour(hour);
+                                    setActiveSuggestionInputHour(hour); // Ensure it's active for this input
                                     debouncedFetchSuggestions(newValue, hour);
                                 } else {
                                     setActivitySuggestions([]);
-                                    setActiveSuggestionInputHour(null);
+                                    setActiveSuggestionInputHour(null); // Clear active hour if input is empty
                                 }
+                                }}
+                                onBlur={() => {
+                                  // Delay hiding suggestions to allow click on suggestion
+                                  // If not clicking on a suggestion, Popover's onOpenChange(false) will handle it
                                 }}
                                 placeholder="What were you doing?"
                                 className="focus:ring-accent text-sm flex-grow"
@@ -368,7 +367,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                 className="w-[var(--radix-popover-trigger-width)] p-1"
                                 side="bottom"
                                 align="start"
-                                onOpenAutoFocus={(e) => e.preventDefault()}
+                                onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
                             >
                             {suggestionsLoading && activeSuggestionInputHour === hour ? (
                                 <div className="p-2 text-sm text-muted-foreground text-center flex items-center justify-center">
@@ -385,7 +384,7 @@ export function DayView({ activities, categories, onActivityChange, on15MinNoteC
                                     onActivityChange(hour, 'description', suggestion);
                                     setCurrentFocusedValue(suggestion);
                                     setActivitySuggestions([]);
-                                    setActiveSuggestionInputHour(null);
+                                    setActiveSuggestionInputHour(null); // Close popover after selection
                                     }}
                                 >
                                     {suggestion}
